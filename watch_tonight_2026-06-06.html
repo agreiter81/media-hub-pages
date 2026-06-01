@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>What Should I Watch Saturday, June 6?</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+       background: #0f0f1a; color: #e0e0e0; min-height: 100vh; }
+header { background: #1a1a2e; padding: 18px 24px; position: sticky; top: 0;
+         z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
+header h1 { font-size: 1.3em; color: #fff; }
+.breadcrumb { font-size: 0.76em; margin-bottom: 6px; }
+.breadcrumb a { color: #7eb8f7; text-decoration: none; }
+
+/* Day navigation */
+.day-nav { display: flex; justify-content: space-between; align-items: center;
+           background: #1a1a2e; color: #e0e0e0; padding: 10px 16px;
+           border-radius: 10px; margin: 14px auto; max-width: 900px; }
+.day-nav a { color: #7eb8f7; text-decoration: none; font-size: 0.85em; }
+.day-nav a:hover { text-decoration: underline; }
+.day-nav .day-title { font-weight: 700; font-size: 1em; }
+
+/* Hero pick */
+.hero { display: flex; gap: 28px; padding: 32px 24px; max-width: 900px;
+        margin: 0 auto; align-items: flex-start; }
+.hero-poster { width: 260px; flex-shrink: 0; border-radius: 14px; overflow: hidden;
+               box-shadow: 0 8px 30px rgba(0,0,0,0.6); }
+.hero-poster img { width: 100%; display: block; }
+.hero-poster .no-poster { aspect-ratio: 2/3; background: #1e1e30;
+                          display: flex; align-items: center; justify-content: center;
+                          font-size: 4em; color: #2a2a3e; }
+.hero-info { flex: 1; padding-top: 8px; }
+.hero-label { font-size: 0.72em; font-weight: 700; text-transform: uppercase;
+              letter-spacing: 0.1em; color: #f39c12; margin-bottom: 8px; }
+.hero-title { font-size: 1.8em; font-weight: 800; color: #fff; line-height: 1.2; }
+.hero-title .year { font-weight: 400; color: #666; font-size: 0.6em; margin-left: 8px; }
+.hero-meta { font-size: 0.82em; color: #888; margin-top: 8px; display: flex;
+             gap: 12px; flex-wrap: wrap; align-items: center; }
+.hero-rating { color: #f5c518; font-weight: 700; }
+.hero-source { display: inline-block; background: #2a2a3e; padding: 4px 12px;
+               border-radius: 20px; font-size: 0.82em; color: #ccc; margin-top: 10px; }
+.hero-genres { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
+.hero-genres span { font-size: 0.72em; background: #2a2a3e; color: #aaa;
+                    padding: 3px 10px; border-radius: 14px; }
+.hero-overview { font-size: 0.88em; color: #999; line-height: 1.6; margin-top: 14px; }
+.hero-providers { display: flex; gap: 6px; margin-top: 14px; align-items: center; }
+.hero-providers img { width: 32px; height: 32px; border-radius: 6px; }
+.hero-actions { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
+.hero-actions a { display: inline-flex; align-items: center; gap: 6px;
+                  padding: 10px 18px; border-radius: 10px; text-decoration: none;
+                  font-size: 0.82em; font-weight: 700; transition: all 0.15s; }
+.btn-primary { background: #4a90e2; color: #fff; }
+.btn-primary:hover { background: #357abd; }
+.btn-secondary { background: #2a2a3e; color: #aaa; border: 1px solid #3a3a5e; }
+.btn-secondary:hover { background: #3a3a5e; color: #ddd; }
+
+/* Section styling */
+.section { max-width: 1100px; margin: 0 auto; padding: 28px 24px 0; }
+.section h2 { font-size: 1em; color: #fff; margin-bottom: 14px; }
+.section-desc { font-size: 0.78em; color: #555; margin-bottom: 14px; margin-top: -8px; }
+.card-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 14px; }
+.card { background: #1e1e30; border-radius: 12px; overflow: hidden;
+        transition: transform 0.15s, box-shadow 0.15s; }
+.card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.4); }
+.card-poster { position: relative; aspect-ratio: 2/3; background: #2a2a3e; overflow: hidden; }
+.card-poster img { width: 100%; height: 100%; object-fit: cover; }
+.card-poster .no-poster { display: flex; align-items: center; justify-content: center;
+                          height: 100%; font-size: 2.5em; color: #3a3a5e; }
+.card-source { position: absolute; top: 6px; left: 6px; font-size: 0.62em; font-weight: 700;
+               padding: 3px 8px; border-radius: 8px; backdrop-filter: blur(4px); }
+.source-tv { background: rgba(231,76,60,0.85); color: white; }
+.source-expiring { background: rgba(243,156,18,0.85); color: white; }
+.source-discovery { background: rgba(74,144,226,0.85); color: white; }
+.source-watchlist { background: rgba(245,197,24,0.85); color: #333; }
+.card-info { padding: 10px; }
+.card-title { font-weight: 700; font-size: 0.82em; color: #fff; line-height: 1.3; }
+.card-title .year { font-weight: 400; color: #666; font-size: 0.85em; }
+.card-detail { font-size: 0.7em; color: #888; margin-top: 4px; }
+.card-providers { display: flex; gap: 4px; margin-top: 6px; }
+.card-providers img { width: 22px; height: 22px; border-radius: 4px; }
+.card-links { display: flex; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
+.card-links a { font-size: 0.65em; color: #8b8bcd; text-decoration: none;
+  padding: 2px 6px; border: 1px solid #333; border-radius: 4px; white-space: nowrap; }
+.card-links a:hover { background: #2a2a4a; color: #b8b8ff; }
+
+.divider { border: none; border-top: 1px solid #1e1e30; margin: 28px 24px;
+           max-width: 1100px; margin-left: auto; margin-right: auto; }
+.empty-msg { color: #555; font-size: 0.85em; padding: 12px 0; }
+footer { text-align: center; color: #333; font-size: 0.72em; padding: 30px; }
+
+/* Responsive */
+@media (max-width: 640px) {
+    .hero { flex-direction: column; align-items: center; text-align: center; padding: 20px 16px; }
+    .hero-poster { width: 200px; }
+    .hero-genres, .hero-providers, .hero-actions { justify-content: center; }
+}
+</style>
+</head><body>
+<header>
+  <div class="breadcrumb">
+    <a href="index.html">🏠 Home</a>
+    <span style="color:#333"> › </span>
+    <a href="watch_tonight.html" style="color:#7eb8f7">What to Watch</a>
+    <span style="color:#444;margin-left:auto;float:right">Monday, June 1 at 8:22 AM</span>
+  </div>
+  <h1>🌙 What Should I Watch Saturday, June 6?</h1>
+</header>
+
+<div class="day-nav">
+  <a href="watch_tonight_2026-06-05.html">← Previous</a>
+  <span class="day-title">📅 Saturday, June 6</span>
+  <a href="watch_tonight_2026-06-07.html">Next →</a>
+</div>
+
+<div class="hero">
+  <div class="hero-poster"><img src="https://image.tmdb.org/t/p/w300/fPJXkiAoW07NUGd9GSb93JKeI71.jpg" alt=""></div>
+  <div class="hero-info">
+    <div class="hero-label">🏆 Saturday, June 6's Top Pick</div>
+    <div class="hero-title">🎬 The Greek Aisle<span class="year">(2026)</span></div>
+    <div class="hero-meta"></div>
+    <div class="hero-source">📺 On 51 Hallmark Channel at 8:00 PM</div>
+    <div class="hero-genres"><span>Romance</span></div>
+    <div class="hero-overview">When Georgia travels to the Greek island of Corfu to finalize an inheritance, she unexpectedly discovers that marrying her handsome co-inheritor is the only way to meet the requirements.</div>
+    
+    <div class="hero-actions">
+      <a class="btn-primary" href="https://tv.youtube.com/search/The Greek Aisle" target="_blank">▶ YouTube TV</a>
+      <a class="btn-secondary" href="https://www.youtube.com/results?search_query=The Greek Aisle+2026+official+trailer" target="_blank">🎬 Trailer</a>
+      <a class="btn-secondary" href="https://trakt.tv/movies/the-greek-aisle-2026" target="_blank">View on Trakt ↗</a>
+    </div>
+  </div>
+</div>
+<hr class="divider">
+
+<div class="section">
+  <h2>🎯 Also Great Saturday, June 6</h2>
+  <div class="card-row"><div class="card">
+  <div class="card-poster">
+    <img src="https://image.tmdb.org/t/p/w300/eVpvlqKZfEVsBOttNFTUyfPoA6K.jpg" alt="" loading="lazy">
+    <div class="card-source source-tv">1124 Hallmark Family 12:00 AM</div>
+  </div>
+  <div class="card-info">
+    <div class="card-title">Little House on the Prairie <span class="year">(2026)</span></div>
+    <div class="card-detail">📺 On 1124 Hallmark Family at 12:00 AM</div>
+    
+    <div class="card-links">
+      <a href="https://trakt.tv/shows/little-house-on-the-prairie-2026" target="_blank" title="View on Trakt">Trakt ↗</a>
+      <a href="https://www.youtube.com/watch?v=AmF0JRoWRGU" target="_blank" title="Watch trailer">🎬 Trailer</a>
+      <a href="https://tv.youtube.com/search/Little House on the Prairie" target="_blank" title="Search YouTube TV">▶ YTTV</a>
+    </div>
+  </div>
+</div>
+<div class="card">
+  <div class="card-poster">
+    <img src="https://image.tmdb.org/t/p/w300/uZ9NZh4zB80phMxo5PucFyWagjG.jpg" alt="" loading="lazy">
+    <div class="card-source source-tv">377 Starz Encore 2:34 AM</div>
+  </div>
+  <div class="card-info">
+    <div class="card-title">Are We Done Yet?</div>
+    <div class="card-detail">📺 On 377 Starz Encore at 2:34 AM</div>
+    
+    <div class="card-links">
+      <a href="https://trakt.tv/search?query=Are We Done Yet?&amp;type=show" target="_blank" title="View on Trakt">Trakt ↗</a>
+      <a href="https://www.youtube.com/results?search_query=Are We Done Yet?++official+trailer" target="_blank" title="Watch trailer">🎬 Trailer</a>
+      <a href="https://tv.youtube.com/search/Are We Done Yet?" target="_blank" title="Search YouTube TV">▶ YTTV</a>
+    </div>
+  </div>
+</div>
+<div class="card">
+  <div class="card-poster">
+    <img src="https://image.tmdb.org/t/p/w300/qSfjudewdGEHAva8LvlbyH0ydof.jpg" alt="" loading="lazy">
+    <div class="card-source source-tv">PBS 12:15 AM</div>
+  </div>
+  <div class="card-info">
+    <div class="card-title">Shift</div>
+    <div class="card-detail">📺 On PBS at 12:15 AM</div>
+    
+    <div class="card-links">
+      <a href="https://trakt.tv/search?query=Shift&amp;type=show" target="_blank" title="View on Trakt">Trakt ↗</a>
+      <a href="https://www.youtube.com/results?search_query=Shift++official+trailer" target="_blank" title="Watch trailer">🎬 Trailer</a>
+      <a href="https://tv.youtube.com/search/Shift" target="_blank" title="Search YouTube TV">▶ YTTV</a>
+    </div>
+  </div>
+</div>
+<div class="card">
+  <div class="card-poster">
+    <img src="https://image.tmdb.org/t/p/w300/ym7Kst6a4uodryxqbGOxmewF235.jpg" alt="" loading="lazy">
+    <div class="card-source source-tv">1112 Freeform HD 7:45 PM</div>
+  </div>
+  <div class="card-info">
+    <div class="card-title">Tangled <span class="year">(2010)</span></div>
+    <div class="card-detail">📺 On 1112 Freeform HD at 7:45 PM</div>
+    <div class="card-providers"><img src="https://image.tmdb.org/t/p/w45/97yvRBw1GzX7fXprcF80er19ot.jpg" title="Disney Plus" alt="Disney Plus" style="width:22px;height:22px;border-radius:4px;"></div>
+    <div class="card-links">
+      <a href="https://trakt.tv/movies/tangled-2010" target="_blank" title="View on Trakt">Trakt ↗</a>
+      <a href="https://www.youtube.com/watch?v=gsYKF8ecC8g" target="_blank" title="Watch trailer">🎬 Trailer</a>
+      <a href="https://tv.youtube.com/search/Tangled" target="_blank" title="Search YouTube TV">▶ YTTV</a>
+    </div>
+  </div>
+</div></div>
+</div>
+<hr class="divider">
+
+<div class="section">
+  <h2>📺 On TV Saturday, June 6</h2>
+  <div class="section-desc">Watchlist titles airing on your YouTube TV channels saturday, june 6</div>
+  <div class="card-row"><div class="card">
+  <div class="card-poster">
+    <img src="https://image.tmdb.org/t/p/w300/fPJXkiAoW07NUGd9GSb93JKeI71.jpg" alt="" loading="lazy">
+    <div class="card-source source-tv">51 Hallmark Channel 8:00 PM</div>
+  </div>
+  <div class="card-info">
+    <div class="card-title">The Greek Aisle <span class="year">(2026)</span></div>
+    <div class="card-detail">📺 On 51 Hallmark Channel at 8:00 PM</div>
+    
+    <div class="card-links">
+      <a href="https://trakt.tv/movies/the-greek-aisle-2026" target="_blank" title="View on Trakt">Trakt ↗</a>
+      <a href="https://www.youtube.com/results?search_query=The Greek Aisle+2026+official+trailer" target="_blank" title="Watch trailer">🎬 Trailer</a>
+      <a href="https://tv.youtube.com/search/The Greek Aisle" target="_blank" title="Search YouTube TV">▶ YTTV</a>
+    </div>
+  </div>
+</div>
+<div class="card">
+  <div class="card-poster">
+    <img src="https://image.tmdb.org/t/p/w300/eVpvlqKZfEVsBOttNFTUyfPoA6K.jpg" alt="" loading="lazy">
+    <div class="card-source source-tv">1124 Hallmark Family 12:00 AM</div>
+  </div>
+  <div class="card-info">
+    <div class="card-title">Little House on the Prairie <span class="year">(2026)</span></div>
+    <div class="card-detail">📺 On 1124 Hallmark Family at 12:00 AM</div>
+    
+    <div class="card-links">
+      <a href="https://trakt.tv/shows/little-house-on-the-prairie-2026" target="_blank" title="View on Trakt">Trakt ↗</a>
+      <a href="https://www.youtube.com/watch?v=AmF0JRoWRGU" target="_blank" title="Watch trailer">🎬 Trailer</a>
+      <a href="https://tv.youtube.com/search/Little House on the Prairie" target="_blank" title="Search YouTube TV">▶ YTTV</a>
+    </div>
+  </div>
+</div>
+<div class="card">
+  <div class="card-poster">
+    <img src="https://image.tmdb.org/t/p/w300/uZ9NZh4zB80phMxo5PucFyWagjG.jpg" alt="" loading="lazy">
+    <div class="card-source source-tv">377 Starz Encore 2:34 AM</div>
+  </div>
+  <div class="card-info">
+    <div class="card-title">Are We Done Yet?</div>
+    <div class="card-detail">📺 On 377 Starz Encore at 2:34 AM</div>
+    
+    <div class="card-links">
+      <a href="https://trakt.tv/search?query=Are We Done Yet?&amp;type=show" target="_blank" title="View on Trakt">Trakt ↗</a>
+      <a href="https://www.youtube.com/results?search_query=Are We Done Yet?++official+trailer" target="_blank" title="Watch trailer">🎬 Trailer</a>
+      <a href="https://tv.youtube.com/search/Are We Done Yet?" target="_blank" title="Search YouTube TV">▶ YTTV</a>
+    </div>
+  </div>
+</div>
+<div class="card">
+  <div class="card-poster">
+    <img src="https://image.tmdb.org/t/p/w300/qSfjudewdGEHAva8LvlbyH0ydof.jpg" alt="" loading="lazy">
+    <div class="card-source source-tv">PBS 12:15 AM</div>
+  </div>
+  <div class="card-info">
+    <div class="card-title">Shift</div>
+    <div class="card-detail">📺 On PBS at 12:15 AM</div>
+    
+    <div class="card-links">
+      <a href="https://trakt.tv/search?query=Shift&amp;type=show" target="_blank" title="View on Trakt">Trakt ↗</a>
+      <a href="https://www.youtube.com/results?search_query=Shift++official+trailer" target="_blank" title="Watch trailer">🎬 Trailer</a>
+      <a href="https://tv.youtube.com/search/Shift" target="_blank" title="Search YouTube TV">▶ YTTV</a>
+    </div>
+  </div>
+</div>
+<div class="card">
+  <div class="card-poster">
+    <img src="https://image.tmdb.org/t/p/w300/ym7Kst6a4uodryxqbGOxmewF235.jpg" alt="" loading="lazy">
+    <div class="card-source source-tv">1112 Freeform HD 7:45 PM</div>
+  </div>
+  <div class="card-info">
+    <div class="card-title">Tangled <span class="year">(2010)</span></div>
+    <div class="card-detail">📺 On 1112 Freeform HD at 7:45 PM</div>
+    <div class="card-providers"><img src="https://image.tmdb.org/t/p/w45/97yvRBw1GzX7fXprcF80er19ot.jpg" title="Disney Plus" alt="Disney Plus" style="width:22px;height:22px;border-radius:4px;"></div>
+    <div class="card-links">
+      <a href="https://trakt.tv/movies/tangled-2010" target="_blank" title="View on Trakt">Trakt ↗</a>
+      <a href="https://www.youtube.com/watch?v=gsYKF8ecC8g" target="_blank" title="Watch trailer">🎬 Trailer</a>
+      <a href="https://tv.youtube.com/search/Tangled" target="_blank" title="Search YouTube TV">▶ YTTV</a>
+    </div>
+  </div>
+</div>
+<div class="card">
+  <div class="card-poster">
+    <img src="https://image.tmdb.org/t/p/w300/buPFnHZ3xQy6vZEHxbHgL1Pc6CR.jpg" alt="" loading="lazy">
+    <div class="card-source source-tv">293 Starz (Pacific) 1:39 AM</div>
+  </div>
+  <div class="card-info">
+    <div class="card-title">Shelter <span class="year">(2026)</span></div>
+    <div class="card-detail">📺 On 293 Starz (Pacific) at 1:39 AM</div>
+    <div class="card-providers"><img src="https://image.tmdb.org/t/p/w45/1C5EVCWyQD798CE1DFfcm6oAbxP.jpg" title="Starz Apple TV Channel" alt="Starz Apple TV Channel" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/yIKwylTLP1u8gl84Is7FItpYLGL.jpg" title="Starz" alt="Starz" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/ptmbGSttkyzawLbxx9MElmxKuVo.jpg" title="Philo" alt="Philo" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/esiLBRzDUwodjfN8gA4qj7l3ZF7.jpg" title="Starz Amazon Channel" alt="Starz Amazon Channel" style="width:22px;height:22px;border-radius:4px;"></div>
+    <div class="card-links">
+      <a href="https://trakt.tv/movies/shelter-2026" target="_blank" title="View on Trakt">Trakt ↗</a>
+      <a href="https://www.youtube.com/watch?v=auHiLFjaIc0" target="_blank" title="Watch trailer">🎬 Trailer</a>
+      <a href="https://tv.youtube.com/search/Shelter" target="_blank" title="Search YouTube TV">▶ YTTV</a>
+    </div>
+  </div>
+</div>
+<div class="card">
+  <div class="card-poster">
+    <img src="https://image.tmdb.org/t/p/w300/6Biy7R9LfumYshur3YKhpj56MpB.jpg" alt="" loading="lazy">
+    <div class="card-source source-tv">379 Starz Encore Classic 8:24 AM</div>
+  </div>
+  <div class="card-info">
+    <div class="card-title">War of the Worlds <span class="year">(2025)</span></div>
+    <div class="card-detail">📺 On 379 Starz Encore Classic at 8:24 AM</div>
+    <div class="card-providers"><img src="https://image.tmdb.org/t/p/w45/pvske1MyAoymrs5bguRfVqYiM9a.jpg" title="Amazon Prime Video" alt="Amazon Prime Video" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/8aBqoNeGGr0oSA85iopgNZUOTOc.jpg" title="Amazon Prime Video with Ads" alt="Amazon Prime Video with Ads" style="width:22px;height:22px;border-radius:4px;"></div>
+    <div class="card-links">
+      <a href="https://trakt.tv/movies/war-of-the-worlds-2025" target="_blank" title="View on Trakt">Trakt ↗</a>
+      <a href="https://www.youtube.com/watch?v=d9erkpdh5o0" target="_blank" title="Watch trailer">🎬 Trailer</a>
+      <a href="https://tv.youtube.com/search/War of the Worlds" target="_blank" title="Search YouTube TV">▶ YTTV</a>
+    </div>
+  </div>
+</div>
+<div class="card">
+  <div class="card-poster">
+    <img src="https://image.tmdb.org/t/p/w300/gJb9HRAs1V4bA0VKsWpT6mhv2RT.jpg" alt="" loading="lazy">
+    <div class="card-source source-tv">46 Turner Classic Movies 12:00 AM</div>
+  </div>
+  <div class="card-info">
+    <div class="card-title">Detour</div>
+    <div class="card-detail">📺 On 46 Turner Classic Movies at 12:00 AM</div>
+    
+    <div class="card-links">
+      <a href="https://trakt.tv/shows/the-detour" target="_blank" title="View on Trakt">Trakt ↗</a>
+      <a href="https://www.youtube.com/watch?v=g09gc6lgajQ" target="_blank" title="Watch trailer">🎬 Trailer</a>
+      <a href="https://tv.youtube.com/search/Detour" target="_blank" title="Search YouTube TV">▶ YTTV</a>
+    </div>
+  </div>
+</div>
+<div class="card">
+  <div class="card-poster">
+    <img src="https://image.tmdb.org/t/p/w300/lV8YHwGkYZsm6EfIqnhaSz2avKt.jpg" alt="" loading="lazy">
+    <div class="card-source source-tv">248 HBO 5:50 PM</div>
+  </div>
+  <div class="card-info">
+    <div class="card-title">The Bride!</div>
+    <div class="card-detail">📺 On 248 HBO at 5:50 PM</div>
+    
+    <div class="card-links">
+      <a href="https://trakt.tv/search?query=The Bride!&amp;type=show" target="_blank" title="View on Trakt">Trakt ↗</a>
+      <a href="https://www.youtube.com/results?search_query=The Bride!++official+trailer" target="_blank" title="Watch trailer">🎬 Trailer</a>
+      <a href="https://tv.youtube.com/search/The Bride!" target="_blank" title="Search YouTube TV">▶ YTTV</a>
+    </div>
+  </div>
+</div>
+<div class="card">
+  <div class="card-poster">
+    <img src="https://image.tmdb.org/t/p/w300/bnfGQD0ku046ueGDvF5PIkwrd23.jpg" alt="" loading="lazy">
+    <div class="card-source source-tv">1366 MGM+ Marquee HD 4:35 AM</div>
+  </div>
+  <div class="card-info">
+    <div class="card-title">Pocket Listing</div>
+    <div class="card-detail">📺 On 1366 MGM+ Marquee HD at 4:35 AM</div>
+    
+    <div class="card-links">
+      <a href="https://trakt.tv/search?query=Pocket Listing&amp;type=show" target="_blank" title="View on Trakt">Trakt ↗</a>
+      <a href="https://www.youtube.com/results?search_query=Pocket Listing++official+trailer" target="_blank" title="Watch trailer">🎬 Trailer</a>
+      <a href="https://tv.youtube.com/search/Pocket Listing" target="_blank" title="Search YouTube TV">▶ YTTV</a>
+    </div>
+  </div>
+</div>
+<div class="card">
+  <div class="card-poster">
+    <img src="https://image.tmdb.org/t/p/w300/ognkaUSNgJe1a2pjB4UNdzEo5jT.jpg" alt="" loading="lazy">
+    <div class="card-source source-tv">262 Showtime Showcase 8:00 PM</div>
+  </div>
+  <div class="card-info">
+    <div class="card-title">Taken</div>
+    <div class="card-detail">📺 On 262 Showtime Showcase at 8:00 PM</div>
+    
+    <div class="card-links">
+      <a href="https://trakt.tv/shows/taken" target="_blank" title="View on Trakt">Trakt ↗</a>
+      <a href="https://www.youtube.com/watch?v=ury6T7Ajuho" target="_blank" title="Watch trailer">🎬 Trailer</a>
+      <a href="https://tv.youtube.com/search/Taken" target="_blank" title="Search YouTube TV">▶ YTTV</a>
+    </div>
+  </div>
+</div>
+<div class="card">
+  <div class="card-poster">
+    <img src="https://image.tmdb.org/t/p/w300/aikvD4Nu7N6ekbrXNua8vJlO8JU.jpg" alt="" loading="lazy">
+    <div class="card-source source-tv">245 HBO Comedy 12:26 AM</div>
+  </div>
+  <div class="card-info">
+    <div class="card-title">Rooster <span class="year">(2026)</span></div>
+    <div class="card-detail">📺 On 245 HBO Comedy at 12:26 AM</div>
+    <div class="card-providers"><img src="https://image.tmdb.org/t/p/w45/embS4GPK7c8pjbuY2O2irV5rYch.jpg" title="HBO Max Amazon Channel" alt="HBO Max Amazon Channel" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/aAb9CUHjFe9Y3O57qnrJH0KOF1B.jpg" title="Spectrum On Demand" alt="Spectrum On Demand" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/jbe4gVSfRlbPTdESXhEKpornsfu.jpg" title="HBO Max" alt="HBO Max" style="width:22px;height:22px;border-radius:4px;"></div>
+    <div class="card-links">
+      <a href="https://trakt.tv/shows/rooster" target="_blank" title="View on Trakt">Trakt ↗</a>
+      <a href="https://www.youtube.com/watch?v=L00r5BGgP64" target="_blank" title="Watch trailer">🎬 Trailer</a>
+      <a href="https://tv.youtube.com/search/Rooster" target="_blank" title="Search YouTube TV">▶ YTTV</a>
+    </div>
+  </div>
+</div></div>
+</div>
+<hr class="divider">
+
+<div class="section">
+  <h2>⏰ Expiring Soon</h2>
+  <div class="section-desc">Titles leaving your streaming services — watch before they're gone</div>
+  <div class="card-row"><div class="card">
+  <div class="card-poster">
+    <img src="https://image.tmdb.org/t/p/w500/kQzDdxI0F5z16qo2vzDoqdVMl4O.jpg" alt="" loading="lazy">
+    <div class="card-source source-expiring">Leaving Prime Video in 7 days</div>
+  </div>
+  <div class="card-info">
+    <div class="card-title">Song Sung Blue <span class="year">(2025)</span></div>
+    <div class="card-detail">⏰ Leaving Prime Video in 7 days</div>
+    <div class="card-providers"><img src="https://image.tmdb.org/t/p/w45/2aGrp1xw3qhwCYvNGAJZPdjfeeX.jpg" title="Peacock Premium" alt="Peacock Premium" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/drPlq5beqXtBaP7MNs8W616YRhm.jpg" title="Peacock Premium Plus" alt="Peacock Premium Plus" style="width:22px;height:22px;border-radius:4px;"></div>
+    <div class="card-links">
+      <a href="https://trakt.tv/movies/song-sung-blue-2025" target="_blank" title="View on Trakt">Trakt ↗</a>
+      <a href="https://www.youtube.com/watch?v=ssZU6xUM-YI" target="_blank" title="Watch trailer">🎬 Trailer</a>
+      <a href="https://tv.youtube.com/search/Song Sung Blue" target="_blank" title="Search YouTube TV">▶ YTTV</a>
+    </div>
+  </div>
+</div></div>
+</div>
+<hr class="divider">
+
+<div class="section">
+  <h2>⭐ From Your Watchlist</h2>
+  <div class="section-desc">Watchlist titles available to stream right now</div>
+  <div class="card-row"><div class="card">
+  <div class="card-poster">
+    <img src="https://image.tmdb.org/t/p/w500/u40gJarLPlIkwouKlzGdobQOV9k.jpg" alt="" loading="lazy">
+    <div class="card-source source-watchlist">On your watchlist</div>
+  </div>
+  <div class="card-info">
+    <div class="card-title">Supernatural <span class="year">(2005)</span></div>
+    <div class="card-detail">⭐ On your watchlist</div>
+    <div class="card-providers"><img src="https://image.tmdb.org/t/p/w45/pvske1MyAoymrs5bguRfVqYiM9a.jpg" title="Amazon Prime Video" alt="Amazon Prime Video" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/2aGrp1xw3qhwCYvNGAJZPdjfeeX.jpg" title="Peacock Premium" alt="Peacock Premium" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/76CvnJAKAPbJuiXYwQGN7PFqOci.jpg" title="TNT" alt="TNT" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/8aBqoNeGGr0oSA85iopgNZUOTOc.jpg" title="Amazon Prime Video with Ads" alt="Amazon Prime Video with Ads" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/drPlq5beqXtBaP7MNs8W616YRhm.jpg" title="Peacock Premium Plus" alt="Peacock Premium Plus" style="width:22px;height:22px;border-radius:4px;"></div>
+    <div class="card-links">
+      <a href="https://trakt.tv/shows/supernatural" target="_blank" title="View on Trakt">Trakt ↗</a>
+      <a href="https://www.youtube.com/watch?v=yy96yJjkvjo" target="_blank" title="Watch trailer">🎬 Trailer</a>
+      <a href="https://tv.youtube.com/search/Supernatural" target="_blank" title="Search YouTube TV">▶ YTTV</a>
+    </div>
+  </div>
+</div>
+<div class="card">
+  <div class="card-poster">
+    <img src="https://image.tmdb.org/t/p/w500/p4r4RD7RsNcJVoz0H6z3dBoTBtW.jpg" alt="" loading="lazy">
+    <div class="card-source source-watchlist">On your watchlist</div>
+  </div>
+  <div class="card-info">
+    <div class="card-title">Arrested Development <span class="year">(2003)</span></div>
+    <div class="card-detail">⭐ On your watchlist</div>
+    <div class="card-providers"><img src="https://image.tmdb.org/t/p/w45/pbpMk2JmcoNnQwx5JGpXngfoWtp.jpg" title="Netflix" alt="Netflix" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/dpR8r13zWDeUR0QkzWidrdMxa56.jpg" title="Netflix Standard with Ads" alt="Netflix Standard with Ads" style="width:22px;height:22px;border-radius:4px;"></div>
+    <div class="card-links">
+      <a href="https://trakt.tv/shows/arrested-development" target="_blank" title="View on Trakt">Trakt ↗</a>
+      <a href="https://www.youtube.com/results?search_query=Arrested Development+2003+official+trailer" target="_blank" title="Watch trailer">🎬 Trailer</a>
+      <a href="https://tv.youtube.com/search/Arrested Development" target="_blank" title="Search YouTube TV">▶ YTTV</a>
+    </div>
+  </div>
+</div>
+<div class="card">
+  <div class="card-poster">
+    <img src="https://image.tmdb.org/t/p/w500/pPHpeI2X1qEd1CS1SeyrdhZ4qnT.jpg" alt="" loading="lazy">
+    <div class="card-source source-watchlist">On your watchlist</div>
+  </div>
+  <div class="card-info">
+    <div class="card-title">Severance <span class="year">(2022)</span></div>
+    <div class="card-detail">⭐ On your watchlist</div>
+    <div class="card-providers"><img src="https://image.tmdb.org/t/p/w45/mcbz1LgtErU9p4UdbZ0rG6RTWHX.jpg" title="Apple TV" alt="Apple TV" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/mHrYMgnZIp6lgW2aXg7ix9zGOnA.jpg" title="Apple TV Amazon Channel" alt="Apple TV Amazon Channel" style="width:22px;height:22px;border-radius:4px;"></div>
+    <div class="card-links">
+      <a href="https://trakt.tv/shows/severance" target="_blank" title="View on Trakt">Trakt ↗</a>
+      <a href="https://www.youtube.com/watch?v=xEQP4VVuyrY" target="_blank" title="Watch trailer">🎬 Trailer</a>
+      <a href="https://tv.youtube.com/search/Severance" target="_blank" title="Search YouTube TV">▶ YTTV</a>
+    </div>
+  </div>
+</div>
+<div class="card">
+  <div class="card-poster">
+    <img src="https://image.tmdb.org/t/p/w500/cRAzL6mmdM6Q6UuQgc335UMgcfd.jpg" alt="" loading="lazy">
+    <div class="card-source source-watchlist">On your watchlist</div>
+  </div>
+  <div class="card-info">
+    <div class="card-title">Spider-Noir <span class="year">(2026)</span></div>
+    <div class="card-detail">⭐ On your watchlist</div>
+    <div class="card-providers"><img src="https://image.tmdb.org/t/p/w45/pvske1MyAoymrs5bguRfVqYiM9a.jpg" title="Amazon Prime Video" alt="Amazon Prime Video" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/8aBqoNeGGr0oSA85iopgNZUOTOc.jpg" title="Amazon Prime Video with Ads" alt="Amazon Prime Video with Ads" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/gZlCYHPx9a0TRUCEeTvHXBf9ibX.jpg" title="Amazon Prime Video Free with Ads" alt="Amazon Prime Video Free with Ads" style="width:22px;height:22px;border-radius:4px;"></div>
+    <div class="card-links">
+      <a href="https://trakt.tv/shows/spider-noir" target="_blank" title="View on Trakt">Trakt ↗</a>
+      <a href="https://www.youtube.com/watch?v=LpN2RavI5C8" target="_blank" title="Watch trailer">🎬 Trailer</a>
+      <a href="https://tv.youtube.com/search/Spider-Noir" target="_blank" title="Search YouTube TV">▶ YTTV</a>
+    </div>
+  </div>
+</div>
+<div class="card">
+  <div class="card-poster">
+    <img src="https://image.tmdb.org/t/p/w500/g4JtvGlQO7DByTI6frUobqvSL3R.jpg" alt="" loading="lazy">
+    <div class="card-source source-watchlist">On your watchlist</div>
+  </div>
+  <div class="card-info">
+    <div class="card-title">Frankenstein <span class="year">(2025)</span></div>
+    <div class="card-detail">⭐ On your watchlist</div>
+    <div class="card-providers"><img src="https://image.tmdb.org/t/p/w45/pbpMk2JmcoNnQwx5JGpXngfoWtp.jpg" title="Netflix" alt="Netflix" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/dpR8r13zWDeUR0QkzWidrdMxa56.jpg" title="Netflix Standard with Ads" alt="Netflix Standard with Ads" style="width:22px;height:22px;border-radius:4px;"></div>
+    <div class="card-links">
+      <a href="https://trakt.tv/movies/frankenstein-2025" target="_blank" title="View on Trakt">Trakt ↗</a>
+      <a href="https://www.youtube.com/watch?v=9WZllcEgWrM" target="_blank" title="Watch trailer">🎬 Trailer</a>
+      <a href="https://tv.youtube.com/search/Frankenstein" target="_blank" title="Search YouTube TV">▶ YTTV</a>
+    </div>
+  </div>
+</div>
+<div class="card">
+  <div class="card-poster">
+    <img src="https://image.tmdb.org/t/p/w500/nNNM50G7p9C3n4vgidCiybsIdHA.jpg" alt="" loading="lazy">
+    <div class="card-source source-watchlist">On your watchlist</div>
+  </div>
+  <div class="card-info">
+    <div class="card-title">Scrubs <span class="year">(2026)</span></div>
+    <div class="card-detail">⭐ On your watchlist</div>
+    <div class="card-providers"><img src="https://image.tmdb.org/t/p/w45/bxBlRPEPpMVDc4jMhSrTf2339DW.jpg" title="Hulu" alt="Hulu" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/9BgaNQRMDvVlji1JBZi6tcfxpKx.jpg" title="fuboTV" alt="fuboTV" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/aAb9CUHjFe9Y3O57qnrJH0KOF1B.jpg" title="Spectrum On Demand" alt="Spectrum On Demand" style="width:22px;height:22px;border-radius:4px;"></div>
+    <div class="card-links">
+      <a href="https://trakt.tv/shows/scrubs-2026" target="_blank" title="View on Trakt">Trakt ↗</a>
+      <a href="https://www.youtube.com/watch?v=dJq8WJ5lMec" target="_blank" title="Watch trailer">🎬 Trailer</a>
+      <a href="https://tv.youtube.com/search/Scrubs" target="_blank" title="Search YouTube TV">▶ YTTV</a>
+    </div>
+  </div>
+</div>
+<div class="card">
+  <div class="card-poster">
+    <img src="https://image.tmdb.org/t/p/w500/oJ7g2CifqpStmoYQyaLQgEU32qO.jpg" alt="" loading="lazy">
+    <div class="card-source source-watchlist">On your watchlist</div>
+  </div>
+  <div class="card-info">
+    <div class="card-title">Zootopia 2 <span class="year">(2025)</span></div>
+    <div class="card-detail">⭐ On your watchlist</div>
+    <div class="card-providers"><img src="https://image.tmdb.org/t/p/w45/97yvRBw1GzX7fXprcF80er19ot.jpg" title="Disney Plus" alt="Disney Plus" style="width:22px;height:22px;border-radius:4px;"></div>
+    <div class="card-links">
+      <a href="https://trakt.tv/movies/zootopia-2-2025" target="_blank" title="View on Trakt">Trakt ↗</a>
+      <a href="https://www.youtube.com/watch?v=sEgPQ7HKoBA" target="_blank" title="Watch trailer">🎬 Trailer</a>
+      <a href="https://tv.youtube.com/search/Zootopia 2" target="_blank" title="Search YouTube TV">▶ YTTV</a>
+    </div>
+  </div>
+</div>
+<div class="card">
+  <div class="card-poster">
+    <img src="https://image.tmdb.org/t/p/w500/3YCKbtAkYWCMDLHvkUjGhG7eWoS.jpg" alt="" loading="lazy">
+    <div class="card-source source-watchlist">On your watchlist</div>
+  </div>
+  <div class="card-info">
+    <div class="card-title">Heated Rivalry <span class="year">(2025)</span></div>
+    <div class="card-detail">⭐ On your watchlist</div>
+    <div class="card-providers"><img src="https://image.tmdb.org/t/p/w45/embS4GPK7c8pjbuY2O2irV5rYch.jpg" title="HBO Max Amazon Channel" alt="HBO Max Amazon Channel" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/jbe4gVSfRlbPTdESXhEKpornsfu.jpg" title="HBO Max" alt="HBO Max" style="width:22px;height:22px;border-radius:4px;"></div>
+    <div class="card-links">
+      <a href="https://trakt.tv/shows/heated-rivalry" target="_blank" title="View on Trakt">Trakt ↗</a>
+      <a href="https://www.youtube.com/watch?v=ADi1iextoUM" target="_blank" title="Watch trailer">🎬 Trailer</a>
+      <a href="https://tv.youtube.com/search/Heated Rivalry" target="_blank" title="Search YouTube TV">▶ YTTV</a>
+    </div>
+  </div>
+</div>
+<div class="card">
+  <div class="card-poster">
+    <img src="https://image.tmdb.org/t/p/w500/sR8m3EUxmRJi4S9u5sfBDRLce1Z.jpg" alt="" loading="lazy">
+    <div class="card-source source-watchlist">On your watchlist</div>
+  </div>
+  <div class="card-info">
+    <div class="card-title">Da Vinci's Demons <span class="year">(2013)</span></div>
+    <div class="card-detail">⭐ On your watchlist</div>
+    <div class="card-providers"><img src="https://image.tmdb.org/t/p/w45/pvske1MyAoymrs5bguRfVqYiM9a.jpg" title="Amazon Prime Video" alt="Amazon Prime Video" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/2aGrp1xw3qhwCYvNGAJZPdjfeeX.jpg" title="Peacock Premium" alt="Peacock Premium" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/1C5EVCWyQD798CE1DFfcm6oAbxP.jpg" title="Starz Apple TV Channel" alt="Starz Apple TV Channel" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/yIKwylTLP1u8gl84Is7FItpYLGL.jpg" title="Starz" alt="Starz" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/ptmbGSttkyzawLbxx9MElmxKuVo.jpg" title="Philo" alt="Philo" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/aAb9CUHjFe9Y3O57qnrJH0KOF1B.jpg" title="Spectrum On Demand" alt="Spectrum On Demand" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/esiLBRzDUwodjfN8gA4qj7l3ZF7.jpg" title="Starz Amazon Channel" alt="Starz Amazon Channel" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/8aBqoNeGGr0oSA85iopgNZUOTOc.jpg" title="Amazon Prime Video with Ads" alt="Amazon Prime Video with Ads" style="width:22px;height:22px;border-radius:4px;"></div>
+    <div class="card-links">
+      <a href="https://trakt.tv/shows/da-vinci-s-demons" target="_blank" title="View on Trakt">Trakt ↗</a>
+      <a href="https://www.youtube.com/watch?v=vgg9nnALFGA" target="_blank" title="Watch trailer">🎬 Trailer</a>
+      <a href="https://tv.youtube.com/search/Da Vinci's Demons" target="_blank" title="Search YouTube TV">▶ YTTV</a>
+    </div>
+  </div>
+</div>
+<div class="card">
+  <div class="card-poster">
+    <img src="https://image.tmdb.org/t/p/w500/3p9t1KDo5iXAn1zsSPn8sdtakWs.jpg" alt="" loading="lazy">
+    <div class="card-source source-watchlist">On your watchlist</div>
+  </div>
+  <div class="card-info">
+    <div class="card-title">Rivals <span class="year">(2024)</span></div>
+    <div class="card-detail">⭐ On your watchlist</div>
+    <div class="card-providers"><img src="https://image.tmdb.org/t/p/w45/bxBlRPEPpMVDc4jMhSrTf2339DW.jpg" title="Hulu" alt="Hulu" style="width:22px;height:22px;border-radius:4px;"></div>
+    <div class="card-links">
+      <a href="https://trakt.tv/shows/rivals-2024" target="_blank" title="View on Trakt">Trakt ↗</a>
+      <a href="https://www.youtube.com/watch?v=vnoFk7f-Oeo" target="_blank" title="Watch trailer">🎬 Trailer</a>
+      <a href="https://tv.youtube.com/search/Rivals" target="_blank" title="Search YouTube TV">▶ YTTV</a>
+    </div>
+  </div>
+</div>
+<div class="card">
+  <div class="card-poster">
+    <img src="https://image.tmdb.org/t/p/w500/wfuqMlaExcoYiUEvKfVpUTt1v4u.jpg" alt="" loading="lazy">
+    <div class="card-source source-watchlist">On your watchlist</div>
+  </div>
+  <div class="card-info">
+    <div class="card-title">GOAT <span class="year">(2026)</span></div>
+    <div class="card-detail">⭐ On your watchlist</div>
+    <div class="card-providers"><img src="https://image.tmdb.org/t/p/w45/pbpMk2JmcoNnQwx5JGpXngfoWtp.jpg" title="Netflix" alt="Netflix" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/dpR8r13zWDeUR0QkzWidrdMxa56.jpg" title="Netflix Standard with Ads" alt="Netflix Standard with Ads" style="width:22px;height:22px;border-radius:4px;"></div>
+    <div class="card-links">
+      <a href="https://trakt.tv/movies/goat-2026" target="_blank" title="View on Trakt">Trakt ↗</a>
+      <a href="https://www.youtube.com/watch?v=kmY-rYS7yng" target="_blank" title="Watch trailer">🎬 Trailer</a>
+      <a href="https://tv.youtube.com/search/GOAT" target="_blank" title="Search YouTube TV">▶ YTTV</a>
+    </div>
+  </div>
+</div>
+<div class="card">
+  <div class="card-poster">
+    <img src="https://image.tmdb.org/t/p/w500/8yBQYa6AdvMY5H9CiAv0HkvF3UE.jpg" alt="" loading="lazy">
+    <div class="card-source source-watchlist">On your watchlist</div>
+  </div>
+  <div class="card-info">
+    <div class="card-title">Ghosts <span class="year">(2021)</span></div>
+    <div class="card-detail">⭐ On your watchlist</div>
+    <div class="card-providers"><img src="https://image.tmdb.org/t/p/w45/9BgaNQRMDvVlji1JBZi6tcfxpKx.jpg" title="fuboTV" alt="fuboTV" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/fts6X10Jn4QT0X6ac3udKEn2tJA.jpg" title="Paramount Plus Premium" alt="Paramount Plus Premium" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/5wym1C0jAvJeGirPdgVpcW0CCuy.jpg" title="Paramount Plus Essential" alt="Paramount Plus Essential" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/tJqmTmQ8jp9WfyaZfApHK8lSywA.jpg" title="Paramount Plus Apple TV Channel " alt="Paramount Plus Apple TV Channel " style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/hExO4PtimLIYn3kBOrzsejNv7cT.jpg" title="Paramount+ Amazon Channel" alt="Paramount+ Amazon Channel" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/x9zOHTUkQzt3PgPVKbMH9CKBwLK.jpg" title="YouTube TV" alt="YouTube TV" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/ywIoxSjoYJGUIbR6BfxUiCHdPi3.jpg" title="Paramount+ Roku Premium Channel" alt="Paramount+ Roku Premium Channel" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/aAb9CUHjFe9Y3O57qnrJH0KOF1B.jpg" title="Spectrum On Demand" alt="Spectrum On Demand" style="width:22px;height:22px;border-radius:4px;"></div>
+    <div class="card-links">
+      <a href="https://trakt.tv/shows/ghosts-2021" target="_blank" title="View on Trakt">Trakt ↗</a>
+      <a href="https://www.youtube.com/watch?v=kaOCCmwAhGc" target="_blank" title="Watch trailer">🎬 Trailer</a>
+      <a href="https://tv.youtube.com/search/Ghosts" target="_blank" title="Search YouTube TV">▶ YTTV</a>
+    </div>
+  </div>
+</div></div>
+</div>
+<hr class="divider">
+
+<div class="section">
+  <h2>🔥 Trending Picks</h2>
+  <div class="section-desc">What everyone's watching right now</div>
+  <div class="card-row"><div class="card">
+  <div class="card-poster">
+    <img src="https://image.tmdb.org/t/p/w500/ca5XiEFgyGsI38QT3wEKa1QVGX.jpg" alt="" loading="lazy">
+    <div class="card-source source-discovery">Trending</div>
+  </div>
+  <div class="card-info">
+    <div class="card-title">Hacks <span class="year">(2021)</span></div>
+    <div class="card-detail">🔥 Trending</div>
+    <div class="card-providers"><img src="https://image.tmdb.org/t/p/w45/pvske1MyAoymrs5bguRfVqYiM9a.jpg" title="Amazon Prime Video" alt="Amazon Prime Video" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/embS4GPK7c8pjbuY2O2irV5rYch.jpg" title="HBO Max Amazon Channel" alt="HBO Max Amazon Channel" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/cZvP3XsDKlHFhNIyHYCVPStXT5l.jpg" title="TBS" alt="TBS" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/jbe4gVSfRlbPTdESXhEKpornsfu.jpg" title="HBO Max" alt="HBO Max" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/8aBqoNeGGr0oSA85iopgNZUOTOc.jpg" title="Amazon Prime Video with Ads" alt="Amazon Prime Video with Ads" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/gZlCYHPx9a0TRUCEeTvHXBf9ibX.jpg" title="Amazon Prime Video Free with Ads" alt="Amazon Prime Video Free with Ads" style="width:22px;height:22px;border-radius:4px;"></div>
+    <div class="card-links">
+      <a href="https://trakt.tv/shows/hacks-2021" target="_blank" title="View on Trakt">Trakt ↗</a>
+      <a href="https://www.youtube.com/watch?v=pJcfoJCCJ50" target="_blank" title="Watch trailer">🎬 Trailer</a>
+      <a href="https://tv.youtube.com/search/Hacks" target="_blank" title="Search YouTube TV">▶ YTTV</a>
+    </div>
+  </div>
+</div>
+<div class="card">
+  <div class="card-poster">
+    <img src="https://image.tmdb.org/t/p/w500/fV1XBxZSl0nxiMIhDuorIbfW8kG.jpg" alt="" loading="lazy">
+    <div class="card-source source-discovery">Trending</div>
+  </div>
+  <div class="card-info">
+    <div class="card-title">Half Man <span class="year">(2026)</span></div>
+    <div class="card-detail">🔥 Trending</div>
+    <div class="card-providers"><img src="https://image.tmdb.org/t/p/w45/embS4GPK7c8pjbuY2O2irV5rYch.jpg" title="HBO Max Amazon Channel" alt="HBO Max Amazon Channel" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/aAb9CUHjFe9Y3O57qnrJH0KOF1B.jpg" title="Spectrum On Demand" alt="Spectrum On Demand" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/jbe4gVSfRlbPTdESXhEKpornsfu.jpg" title="HBO Max" alt="HBO Max" style="width:22px;height:22px;border-radius:4px;"></div>
+    <div class="card-links">
+      <a href="https://trakt.tv/shows/half-man" target="_blank" title="View on Trakt">Trakt ↗</a>
+      <a href="https://www.youtube.com/watch?v=egkRy1U94tA" target="_blank" title="Watch trailer">🎬 Trailer</a>
+      <a href="https://tv.youtube.com/search/Half Man" target="_blank" title="Search YouTube TV">▶ YTTV</a>
+    </div>
+  </div>
+</div>
+<div class="card">
+  <div class="card-poster">
+    <img src="https://image.tmdb.org/t/p/w500/WGRQ8FpjkDTzivQJ43t94bOuY0.jpg" alt="" loading="lazy">
+    <div class="card-source source-discovery">Trending</div>
+  </div>
+  <div class="card-info">
+    <div class="card-title">Rick and Morty <span class="year">(2013)</span></div>
+    <div class="card-detail">🔥 Trending</div>
+    <div class="card-providers"><img src="https://image.tmdb.org/t/p/w45/bxBlRPEPpMVDc4jMhSrTf2339DW.jpg" title="Hulu" alt="Hulu" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/embS4GPK7c8pjbuY2O2irV5rYch.jpg" title="HBO Max Amazon Channel" alt="HBO Max Amazon Channel" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/x9zOHTUkQzt3PgPVKbMH9CKBwLK.jpg" title="YouTube TV" alt="YouTube TV" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/da2dkyeFe4GCRaKxpsW4mzt2UPl.jpg" title="Adult Swim" alt="Adult Swim" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/jbe4gVSfRlbPTdESXhEKpornsfu.jpg" title="HBO Max" alt="HBO Max" style="width:22px;height:22px;border-radius:4px;"></div>
+    <div class="card-links">
+      <a href="https://trakt.tv/shows/rick-and-morty" target="_blank" title="View on Trakt">Trakt ↗</a>
+      <a href="https://www.youtube.com/watch?v=WNhH00OIPP0" target="_blank" title="Watch trailer">🎬 Trailer</a>
+      <a href="https://tv.youtube.com/search/Rick and Morty" target="_blank" title="Search YouTube TV">▶ YTTV</a>
+    </div>
+  </div>
+</div>
+<div class="card">
+  <div class="card-poster">
+    <img src="https://image.tmdb.org/t/p/w500/vjUWJXdd275UYJDzblaNPZp9319.jpg" alt="" loading="lazy">
+    <div class="card-source source-discovery">Trending</div>
+  </div>
+  <div class="card-info">
+    <div class="card-title">Tom Clancy's Jack Ryan: Ghost War <span class="year">(2026)</span></div>
+    <div class="card-detail">🔥 Trending</div>
+    <div class="card-providers"><img src="https://image.tmdb.org/t/p/w45/pvske1MyAoymrs5bguRfVqYiM9a.jpg" title="Amazon Prime Video" alt="Amazon Prime Video" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/8aBqoNeGGr0oSA85iopgNZUOTOc.jpg" title="Amazon Prime Video with Ads" alt="Amazon Prime Video with Ads" style="width:22px;height:22px;border-radius:4px;"></div>
+    <div class="card-links">
+      <a href="https://trakt.tv/movies/tom-clancy-s-jack-ryan-ghost-war-2026" target="_blank" title="View on Trakt">Trakt ↗</a>
+      <a href="https://www.youtube.com/watch?v=-4ZVFspRn3M" target="_blank" title="Watch trailer">🎬 Trailer</a>
+      <a href="https://tv.youtube.com/search/Tom Clancy's Jack Ryan: Ghost War" target="_blank" title="Search YouTube TV">▶ YTTV</a>
+    </div>
+  </div>
+</div>
+<div class="card">
+  <div class="card-poster">
+    <img src="https://image.tmdb.org/t/p/w500/gigxjNnACiXAfrwoMox5WJFgc0I.jpg" alt="" loading="lazy">
+    <div class="card-source source-discovery">Trending</div>
+  </div>
+  <div class="card-info">
+    <div class="card-title">Criminal Minds <span class="year">(2005)</span></div>
+    <div class="card-detail">🔥 Trending</div>
+    <div class="card-providers"><img src="https://image.tmdb.org/t/p/w45/pvske1MyAoymrs5bguRfVqYiM9a.jpg" title="Amazon Prime Video" alt="Amazon Prime Video" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/bxBlRPEPpMVDc4jMhSrTf2339DW.jpg" title="Hulu" alt="Hulu" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/fts6X10Jn4QT0X6ac3udKEn2tJA.jpg" title="Paramount Plus Premium" alt="Paramount Plus Premium" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/5wym1C0jAvJeGirPdgVpcW0CCuy.jpg" title="Paramount Plus Essential" alt="Paramount Plus Essential" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/tJqmTmQ8jp9WfyaZfApHK8lSywA.jpg" title="Paramount Plus Apple TV Channel " alt="Paramount Plus Apple TV Channel " style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/hExO4PtimLIYn3kBOrzsejNv7cT.jpg" title="Paramount+ Amazon Channel" alt="Paramount+ Amazon Channel" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/x9zOHTUkQzt3PgPVKbMH9CKBwLK.jpg" title="YouTube TV" alt="YouTube TV" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/ptmbGSttkyzawLbxx9MElmxKuVo.jpg" title="Philo" alt="Philo" style="width:22px;height:22px;border-radius:4px;"></div>
+    <div class="card-links">
+      <a href="https://trakt.tv/shows/criminal-minds" target="_blank" title="View on Trakt">Trakt ↗</a>
+      <a href="https://www.youtube.com/watch?v=NTYxiJBbEZk" target="_blank" title="Watch trailer">🎬 Trailer</a>
+      <a href="https://tv.youtube.com/search/Criminal Minds" target="_blank" title="Search YouTube TV">▶ YTTV</a>
+    </div>
+  </div>
+</div>
+<div class="card">
+  <div class="card-poster">
+    <img src="https://image.tmdb.org/t/p/w500/oHLZyN7G7EpXCHxYdpMcuUNCUgS.jpg" alt="" loading="lazy">
+    <div class="card-source source-discovery">Trending</div>
+  </div>
+  <div class="card-info">
+    <div class="card-title">Taskmaster <span class="year">(2015)</span></div>
+    <div class="card-detail">🔥 Trending</div>
+    <div class="card-providers"><img src="https://image.tmdb.org/t/p/w45/dB8G41Q6tSL5NBisrIeqByfepBc.jpg" title="Pluto TV" alt="Pluto TV" style="width:22px;height:22px;border-radius:4px;"></div>
+    <div class="card-links">
+      <a href="https://trakt.tv/shows/taskmaster" target="_blank" title="View on Trakt">Trakt ↗</a>
+      <a href="https://www.youtube.com/watch?v=Ahhr6gHoVp0" target="_blank" title="Watch trailer">🎬 Trailer</a>
+      <a href="https://tv.youtube.com/search/Taskmaster" target="_blank" title="Search YouTube TV">▶ YTTV</a>
+    </div>
+  </div>
+</div>
+<div class="card">
+  <div class="card-poster">
+    <img src="https://image.tmdb.org/t/p/w500/3PFsEuAiyLkWsP4GG6dIV37Q6gu.jpg" alt="" loading="lazy">
+    <div class="card-source source-discovery">Trending</div>
+  </div>
+  <div class="card-info">
+    <div class="card-title">Family Guy <span class="year">(1999)</span></div>
+    <div class="card-detail">🔥 Trending</div>
+    <div class="card-providers"><img src="https://image.tmdb.org/t/p/w45/bxBlRPEPpMVDc4jMhSrTf2339DW.jpg" title="Hulu" alt="Hulu" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/9BgaNQRMDvVlji1JBZi6tcfxpKx.jpg" title="fuboTV" alt="fuboTV" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/x9zOHTUkQzt3PgPVKbMH9CKBwLK.jpg" title="YouTube TV" alt="YouTube TV" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/da2dkyeFe4GCRaKxpsW4mzt2UPl.jpg" title="Adult Swim" alt="Adult Swim" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/r2nFtrKGezfBEV2xA3gufBaqi5j.jpg" title="FOX One Amazon Channel" alt="FOX One Amazon Channel" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/m4KUe3UoTnLgN4g6txYMnBqeUI5.jpg" title="FXNow" alt="FXNow" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/aAb9CUHjFe9Y3O57qnrJH0KOF1B.jpg" title="Spectrum On Demand" alt="Spectrum On Demand" style="width:22px;height:22px;border-radius:4px;"></div>
+    <div class="card-links">
+      <a href="https://trakt.tv/shows/family-guy" target="_blank" title="View on Trakt">Trakt ↗</a>
+      <a href="https://www.youtube.com/watch?v=J32iwo65RMc" target="_blank" title="Watch trailer">🎬 Trailer</a>
+      <a href="https://tv.youtube.com/search/Family Guy" target="_blank" title="Search YouTube TV">▶ YTTV</a>
+    </div>
+  </div>
+</div>
+<div class="card">
+  <div class="card-poster">
+    <img src="https://image.tmdb.org/t/p/w500/mjkS2iAgWj3ik1DTjvI15nHZ7yl.jpg" alt="" loading="lazy">
+    <div class="card-source source-discovery">Trending</div>
+  </div>
+  <div class="card-info">
+    <div class="card-title">Send Help <span class="year">(2026)</span></div>
+    <div class="card-detail">🔥 Trending</div>
+    <div class="card-providers"><img src="https://image.tmdb.org/t/p/w45/bxBlRPEPpMVDc4jMhSrTf2339DW.jpg" title="Hulu" alt="Hulu" style="width:22px;height:22px;border-radius:4px;"></div>
+    <div class="card-links">
+      <a href="https://trakt.tv/movies/send-help-2026" target="_blank" title="View on Trakt">Trakt ↗</a>
+      <a href="https://www.youtube.com/watch?v=cOmnmFz_Uzs" target="_blank" title="Watch trailer">🎬 Trailer</a>
+      <a href="https://tv.youtube.com/search/Send Help" target="_blank" title="Search YouTube TV">▶ YTTV</a>
+    </div>
+  </div>
+</div>
+<div class="card">
+  <div class="card-poster">
+    <img src="https://image.tmdb.org/t/p/w500/dfFx1bPBf2FvpxZ6FWYkFF4hWJx.jpg" alt="" loading="lazy">
+    <div class="card-source source-discovery">Trending</div>
+  </div>
+  <div class="card-info">
+    <div class="card-title">Dutton Ranch <span class="year">(2026)</span></div>
+    <div class="card-detail">🔥 Trending</div>
+    <div class="card-providers"><img src="https://image.tmdb.org/t/p/w45/9BgaNQRMDvVlji1JBZi6tcfxpKx.jpg" title="fuboTV" alt="fuboTV" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/fts6X10Jn4QT0X6ac3udKEn2tJA.jpg" title="Paramount Plus Premium" alt="Paramount Plus Premium" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/5wym1C0jAvJeGirPdgVpcW0CCuy.jpg" title="Paramount Plus Essential" alt="Paramount Plus Essential" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/tJqmTmQ8jp9WfyaZfApHK8lSywA.jpg" title="Paramount Plus Apple TV Channel " alt="Paramount Plus Apple TV Channel " style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/hExO4PtimLIYn3kBOrzsejNv7cT.jpg" title="Paramount+ Amazon Channel" alt="Paramount+ Amazon Channel" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/ptmbGSttkyzawLbxx9MElmxKuVo.jpg" title="Philo" alt="Philo" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/aAb9CUHjFe9Y3O57qnrJH0KOF1B.jpg" title="Spectrum On Demand" alt="Spectrum On Demand" style="width:22px;height:22px;border-radius:4px;"></div>
+    <div class="card-links">
+      <a href="https://trakt.tv/shows/dutton-ranch" target="_blank" title="View on Trakt">Trakt ↗</a>
+      <a href="https://www.youtube.com/watch?v=19I5a1tRt98" target="_blank" title="Watch trailer">🎬 Trailer</a>
+      <a href="https://tv.youtube.com/search/Dutton Ranch" target="_blank" title="Search YouTube TV">▶ YTTV</a>
+    </div>
+  </div>
+</div>
+<div class="card">
+  <div class="card-poster">
+    <img src="https://image.tmdb.org/t/p/w500/iIHsQe3Qjs3NH62HdamyQEPeqTR.jpg" alt="" loading="lazy">
+    <div class="card-source source-discovery">Trending</div>
+  </div>
+  <div class="card-info">
+    <div class="card-title">Bob's Burgers <span class="year">(2011)</span></div>
+    <div class="card-detail">🔥 Trending</div>
+    <div class="card-providers"><img src="https://image.tmdb.org/t/p/w45/bxBlRPEPpMVDc4jMhSrTf2339DW.jpg" title="Hulu" alt="Hulu" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/9BgaNQRMDvVlji1JBZi6tcfxpKx.jpg" title="fuboTV" alt="fuboTV" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/x9zOHTUkQzt3PgPVKbMH9CKBwLK.jpg" title="YouTube TV" alt="YouTube TV" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/da2dkyeFe4GCRaKxpsW4mzt2UPl.jpg" title="Adult Swim" alt="Adult Swim" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/r2nFtrKGezfBEV2xA3gufBaqi5j.jpg" title="FOX One Amazon Channel" alt="FOX One Amazon Channel" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/m4KUe3UoTnLgN4g6txYMnBqeUI5.jpg" title="FXNow" alt="FXNow" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/aAb9CUHjFe9Y3O57qnrJH0KOF1B.jpg" title="Spectrum On Demand" alt="Spectrum On Demand" style="width:22px;height:22px;border-radius:4px;"></div>
+    <div class="card-links">
+      <a href="https://trakt.tv/shows/bob-s-burgers" target="_blank" title="View on Trakt">Trakt ↗</a>
+      <a href="https://www.youtube.com/watch?v=cCrZfBME9Gc" target="_blank" title="Watch trailer">🎬 Trailer</a>
+      <a href="https://tv.youtube.com/search/Bob's Burgers" target="_blank" title="Search YouTube TV">▶ YTTV</a>
+    </div>
+  </div>
+</div>
+<div class="card">
+  <div class="card-poster">
+    <img src="https://image.tmdb.org/t/p/w500/fuuEjEr69uvRtGaQw70JfvdrUwb.jpg" alt="" loading="lazy">
+    <div class="card-source source-discovery">Trending</div>
+  </div>
+  <div class="card-info">
+    <div class="card-title">Last Week Tonight with John Oliver <span class="year">(2014)</span></div>
+    <div class="card-detail">🔥 Trending</div>
+    <div class="card-providers"><img src="https://image.tmdb.org/t/p/w45/embS4GPK7c8pjbuY2O2irV5rYch.jpg" title="HBO Max Amazon Channel" alt="HBO Max Amazon Channel" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/aAb9CUHjFe9Y3O57qnrJH0KOF1B.jpg" title="Spectrum On Demand" alt="Spectrum On Demand" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/jbe4gVSfRlbPTdESXhEKpornsfu.jpg" title="HBO Max" alt="HBO Max" style="width:22px;height:22px;border-radius:4px;"></div>
+    <div class="card-links">
+      <a href="https://trakt.tv/shows/last-week-tonight-with-john-oliver" target="_blank" title="View on Trakt">Trakt ↗</a>
+      <a href="https://www.youtube.com/results?search_query=Last Week Tonight with John Oliver+2014+official+trailer" target="_blank" title="Watch trailer">🎬 Trailer</a>
+      <a href="https://tv.youtube.com/search/Last Week Tonight with John Oliver" target="_blank" title="Search YouTube TV">▶ YTTV</a>
+    </div>
+  </div>
+</div>
+<div class="card">
+  <div class="card-poster">
+    <img src="https://image.tmdb.org/t/p/w500/4tblBrslcKSifMVZ3TmtT2ukMor.jpg" alt="" loading="lazy">
+    <div class="card-source source-discovery">Trending</div>
+  </div>
+  <div class="card-info">
+    <div class="card-title">Invincible <span class="year">(2021)</span></div>
+    <div class="card-detail">🔥 Trending</div>
+    <div class="card-providers"><img src="https://image.tmdb.org/t/p/w45/pvske1MyAoymrs5bguRfVqYiM9a.jpg" title="Amazon Prime Video" alt="Amazon Prime Video" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/8aBqoNeGGr0oSA85iopgNZUOTOc.jpg" title="Amazon Prime Video with Ads" alt="Amazon Prime Video with Ads" style="width:22px;height:22px;border-radius:4px;"><img src="https://image.tmdb.org/t/p/w45/gZlCYHPx9a0TRUCEeTvHXBf9ibX.jpg" title="Amazon Prime Video Free with Ads" alt="Amazon Prime Video Free with Ads" style="width:22px;height:22px;border-radius:4px;"></div>
+    <div class="card-links">
+      <a href="https://trakt.tv/shows/invincible-2021" target="_blank" title="View on Trakt">Trakt ↗</a>
+      <a href="https://www.youtube.com/watch?v=-bfAVpuko5o" target="_blank" title="Watch trailer">🎬 Trailer</a>
+      <a href="https://tv.youtube.com/search/Invincible" target="_blank" title="Search YouTube TV">▶ YTTV</a>
+    </div>
+  </div>
+</div></div>
+</div>
+<hr class="divider">
+<footer>Picks generated Monday, June 1 at 8:22 AM · Refresh for new suggestions</footer>
+</body></html>

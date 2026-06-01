@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Media Hub</title>
+<style>
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+       background: #0f0f1a; color: #e0e0e0; min-height: 100vh;
+       display: flex; flex-direction: column; align-items: center; }
+
+/* ── Header ──────────────────────────────────────────────────────────────── */
+header { width: 100%; background: #1a1a2e; padding: 24px 32px;
+         box-shadow: 0 2px 12px rgba(0,0,0,0.5); text-align: center; }
+header h1 { font-size: 1.8em; color: #fff; letter-spacing: -0.01em; }
+header p  { color: #555; font-size: 0.8em; margin-top: 6px; }
+
+/* ── Stats section ───────────────────────────────────────────────────────── */
+.stats-section { width: 100%; max-width: 1100px; padding: 32px 32px 0; }
+
+.stat-strip { display: flex; gap: 16px; flex-wrap: wrap; }
+.stat-box   { flex: 1; min-width: 140px; background: #1a1a2e;
+              border: 1px solid #1e1e30; border-radius: 14px;
+              padding: 22px 18px; text-align: center; }
+.stat-num   { font-size: 2.2em; font-weight: 800; color: #fff; line-height: 1; }
+.stat-lbl   { font-size: 0.71em; color: #666; margin-top: 7px;
+              text-transform: uppercase; letter-spacing: 0.06em; }
+
+/* ── Genre chips ─────────────────────────────────────────────────────────── */
+.genre-row  { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
+.genre-chip { display: inline-flex; align-items: center; gap: 6px;
+              padding: 5px 13px; border-radius: 20px; border: 1px solid;
+              font-size: 0.78em; font-weight: 600; }
+.genre-count { font-weight: 400; opacity: 0.7; }
+
+/* ── Recently watched strip ─────────────────────────────────────────────── */
+.recent-hdr    { font-size: 0.78em; font-weight: 700; color: #888;
+                 text-transform: uppercase; letter-spacing: 0.08em;
+                 margin-top: 26px; margin-bottom: 10px; }
+.recent-scroll { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 8px;
+                 scrollbar-width: thin; scrollbar-color: #333 transparent; }
+.recent-item   { display: flex; align-items: center; gap: 10px;
+                 min-width: 188px; max-width: 230px;
+                 background: #1a1a2e; border: 1px solid #1e1e30;
+                 border-radius: 10px; padding: 11px 13px;
+                 flex-shrink: 0; }
+.recent-icon   { font-size: 1.5em; flex-shrink: 0; }
+.recent-info   { min-width: 0; }
+.recent-title  { font-size: 0.8em; font-weight: 600; color: #ddd;
+                 white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.recent-date   { font-size: 0.7em; color: #555; margin-top: 3px; }
+.stats-footer  { font-size: 0.7em; color: #3a3a4a; margin-top: 14px; }
+
+/* ── Divider ─────────────────────────────────────────────────────────────── */
+.divider { width: 100%; max-width: 1100px; border: none;
+           border-top: 1px solid #1e1e30; margin: 0 32px; }
+
+/* ── Feature cards ───────────────────────────────────────────────────────── */
+.section-label { font-size: 0.75em; font-weight: 700; color: #555;
+                 text-transform: uppercase; letter-spacing: 0.08em;
+                 width: 100%; max-width: 1100px; padding: 28px 32px 0; }
+.grid { display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 20px; padding: 16px 32px 40px; max-width: 1100px; width: 100%; }
+.card { background: #1a1a2e; border-radius: 16px; padding: 28px 26px;
+        text-decoration: none; color: #e0e0e0;
+        border: 1px solid #1e1e30;
+        transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+        display: flex; flex-direction: column; gap: 10px; }
+.card:hover { transform: translateY(-4px);
+              box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+              border-color: var(--accent); }
+.card .icon { font-size: 2.4em; line-height: 1; }
+.card h2    { font-size: 1.15em; color: #fff; }
+.card p     { font-size: 0.82em; color: #777; line-height: 1.55; flex: 1; }
+.card .go   { font-size: 0.78em; font-weight: 700; color: var(--accent); margin-top: 6px; }
+.card-discovery   { --accent: #4a90e2; }
+.card-library     { --accent: #9b59b6; }
+.card-ytv         { --accent: #e74c3c; }
+.card-calendar    { --accent: #27ae60; }
+.card-randomizer  { --accent: #e67e22; }
+.card-recommendations { --accent: #1abc9c; }
+.card-mood            { --accent: #e91e63; }
+footer { color: #333; font-size: 0.72em; padding: 20px; text-align: center; }
+
+/* ── Add to Watchlist search ────────────────────────────────────────────── */
+.search-section { width: 100%; max-width: 1100px; padding: 24px 32px 0; }
+.search-bar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.search-bar input { flex: 1; min-width: 200px; background: #1a1a2e; border: 1px solid #2a2a3e;
+                     border-radius: 12px; padding: 12px 16px; color: #e0e0e0;
+                     font-size: 0.95em; outline: none; }
+.search-bar input:focus { border-color: #4a90e2; }
+.search-bar input::placeholder { color: #555; }
+.type-toggle { display: flex; gap: 0; }
+.type-btn { background: #1a1a2e; border: 1px solid #2a2a3e; color: #888;
+            padding: 10px 16px; font-size: 0.82em; font-weight: 600; cursor: pointer; }
+.type-btn:first-child { border-radius: 10px 0 0 10px; }
+.type-btn:last-child  { border-radius: 0 10px 10px 0; }
+.type-btn.active { background: #4a90e2; color: #fff; border-color: #4a90e2; }
+.search-results { margin-top: 14px; display: flex; flex-direction: column; gap: 8px; }
+.search-result { display: flex; gap: 14px; background: #1a1a2e; border: 1px solid #1e1e30;
+                 border-radius: 12px; padding: 12px 14px; align-items: center; }
+.sr-poster { width: 50px; height: 75px; border-radius: 6px; object-fit: cover; flex-shrink: 0;
+             background: #2a2a3e; }
+.sr-info { flex: 1; min-width: 0; }
+.sr-title { font-size: 0.9em; font-weight: 700; color: #fff; }
+.sr-year  { font-size: 0.75em; color: #666; margin-left: 6px; }
+.sr-meta  { font-size: 0.72em; color: #555; margin-top: 3px;
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+            overflow: hidden; }
+.sr-rating { font-size: 0.72em; color: #f1c40f; margin-top: 2px; }
+.sr-add { flex-shrink: 0; background: #27ae60; color: #fff; border: none;
+          border-radius: 10px; padding: 10px 16px; font-size: 0.78em;
+          font-weight: 700; cursor: pointer; white-space: nowrap; }
+.sr-add:hover { background: #2ecc71; }
+.sr-add.added   { background: #1a1a2e; border: 1px solid #27ae60; color: #27ae60; cursor: default; }
+.sr-add.error   { background: #e74c3c; }
+.sr-add.loading { background: #555; cursor: wait; }
+.sr-add.exists  { background: #1a1a2e; border: 1px solid #666; color: #666; cursor: default; }
+.search-hint { font-size: 0.7em; color: #444; margin-top: 6px; }
+
+/* ── Tonight strip ───────────────────────────────────────────────────────── */
+.tonight-section { width: 100%; max-width: 1100px; padding: 20px 32px 0; }
+.tonight-header { display: flex; align-items: center; justify-content: space-between;
+                  margin-bottom: 12px; }
+.tonight-header h2 { font-size: 1em; color: #fff; margin: 0; }
+.tonight-header a { font-size: 0.78em; color: #4a90e2; text-decoration: none; font-weight: 600; }
+.tonight-header a:hover { color: #7eb8f7; }
+.tonight-strip { display: flex; gap: 14px; overflow-x: auto; padding-bottom: 8px;
+                 scrollbar-width: thin; scrollbar-color: #333 transparent; }
+.tonight-strip::-webkit-scrollbar { height: 4px; }
+.tonight-strip::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+.tonight-card { flex: 0 0 130px; text-decoration: none; color: inherit;
+                transition: transform 0.15s; }
+.tonight-card:hover { transform: translateY(-3px); }
+.tonight-card-poster { width: 130px; aspect-ratio: 2/3; border-radius: 10px;
+                       overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+                       position: relative; }
+.tonight-card-poster img { width: 100%; height: 100%; object-fit: cover; }
+.tonight-card-poster .no-poster { width: 100%; height: 100%; background: #1e1e30;
+                                  display: flex; align-items: center; justify-content: center;
+                                  font-size: 2.5em; color: #2a2a3e; }
+.tonight-card-badge { position: absolute; top: 6px; left: 6px; background: rgba(243,156,18,0.9);
+                      color: #fff; font-size: 0.55em; font-weight: 700; padding: 2px 6px;
+                      border-radius: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
+.tonight-card-title { font-size: 0.72em; font-weight: 700; color: #ddd; margin-top: 6px;
+                      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tonight-card-source { font-size: 0.62em; color: #666; margin-top: 2px;
+                       white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 640px) {
+  .tonight-card { flex: 0 0 110px; }
+  .tonight-card-poster { width: 110px; }
+}
+
+</style>
+</head><body>
+<header>
+  <h1>🎬 Media Hub</h1>
+  <p>Generated Monday, June 1 at 8:23 AM</p>
+</header>
+
+<section class="stats-section">
+  <div class="stat-strip">
+    <div class="stat-box">
+      <div class="stat-num">2,428</div>
+      <div class="stat-lbl">Total Titles</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-num" style="color:#4a90e2">667</div>
+      <div class="stat-lbl">Movies to Watch</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-num" style="color:#27ae60">824</div>
+      <div class="stat-lbl">Movies Watched</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-num" style="color:#9b59b6">937</div>
+      <div class="stat-lbl">TV Shows</div>
+    </div>
+  </div>
+  <div class="genre-row"><span class="genre-chip" style="background:#4a90e222;border-color:#4a90e2;color:#4a90e2">Comedy <span class="genre-count">1217</span></span><span class="genre-chip" style="background:#9b59b622;border-color:#9b59b6;color:#9b59b6">Drama <span class="genre-count">1048</span></span><span class="genre-chip" style="background:#e74c3c22;border-color:#e74c3c;color:#e74c3c">Crime <span class="genre-count">378</span></span><span class="genre-chip" style="background:#27ae6022;border-color:#27ae60;color:#27ae60">Action <span class="genre-count">328</span></span><span class="genre-chip" style="background:#f39c1222;border-color:#f39c12;color:#f39c12">Romance <span class="genre-count">286</span></span><span class="genre-chip" style="background:#1abc9c22;border-color:#1abc9c;color:#1abc9c">Adventure <span class="genre-count">245</span></span><span class="genre-chip" style="background:#e67e2222;border-color:#e67e22;color:#e67e22">Mystery <span class="genre-count">241</span></span><span class="genre-chip" style="background:#3498db22;border-color:#3498db;color:#3498db">Thriller <span class="genre-count">241</span></span></div>
+  <div class="recent-hdr">🕐 Recently Watched</div><div class="recent-scroll"><div class="recent-item"><div class="recent-icon">🎬</div><div class="recent-info"><div class="recent-title">Summer of 69</div><div class="recent-date">May 28, 2026</div></div></div><div class="recent-item"><div class="recent-icon">🎬</div><div class="recent-info"><div class="recent-title">Dirty Grandpa</div><div class="recent-date">May 26, 2026</div></div></div><div class="recent-item"><div class="recent-icon">📺</div><div class="recent-info"><div class="recent-title">Brooklyn Nine-Nine</div><div class="recent-date">May 26, 2026</div></div></div><div class="recent-item"><div class="recent-icon">📺</div><div class="recent-info"><div class="recent-title">Running Point</div><div class="recent-date">May 22, 2026</div></div></div><div class="recent-item"><div class="recent-icon">🎬</div><div class="recent-info"><div class="recent-title">Because I Said So</div><div class="recent-date">May 20, 2026</div></div></div><div class="recent-item"><div class="recent-icon">🎬</div><div class="recent-info"><div class="recent-title">Apex</div><div class="recent-date">May 10, 2026</div></div></div><div class="recent-item"><div class="recent-icon">🎬</div><div class="recent-info"><div class="recent-title">The Swing of Things</div><div class="recent-date">May 8, 2026</div></div></div><div class="recent-item"><div class="recent-icon">🎬</div><div class="recent-info"><div class="recent-title">She's Funny That Way</div><div class="recent-date">May 5, 2026</div></div></div></div>
+  <div class="stats-footer">Library data as of Jun 1 at 8:18 AM</div>
+</section>
+<hr class="divider">
+
+<section class="tonight-section">
+  <div class="tonight-header">
+    <h2>🌙 What Should I Watch Tonight?</h2>
+    <a href="watch_tonight.html">See all picks →</a>
+  </div>
+  <div class="tonight-strip">
+      <a class="tonight-card" href="watch_tonight.html">
+        <div class="tonight-card-poster"><img src="https://image.tmdb.org/t/p/w300/uc2gtWczT58BiAUJWFz9P5aZmNF.jpg" alt="" loading="lazy"><span class="tonight-card-badge">Top Pick</span></div>
+        <div class="tonight-card-title">Heartland</div>
+        <div class="tonight-card-source">📺 On 1124 Hallmark Fami…</div>
+      </a>
+      <a class="tonight-card" href="watch_tonight.html">
+        <div class="tonight-card-poster"><img src="https://image.tmdb.org/t/p/w300/75bymY6fyUWjNlmzTeU9SYpNyd2.jpg" alt="" loading="lazy"></div>
+        <div class="tonight-card-title">Mercenaries</div>
+        <div class="tonight-card-source">📺 On 382 Starz Encore A…</div>
+      </a>
+      <a class="tonight-card" href="watch_tonight.html">
+        <div class="tonight-card-poster"><img src="https://image.tmdb.org/t/p/w300/13B6onhL6FzSN2KaNeQeMML05pS.jpg" alt="" loading="lazy"></div>
+        <div class="tonight-card-title">Breach</div>
+        <div class="tonight-card-source">📺 On 272 The Movie Chan…</div>
+      </a>
+      <a class="tonight-card" href="watch_tonight.html">
+        <div class="tonight-card-poster"><img src="https://image.tmdb.org/t/p/w300/6njUqsd3By2mJsdZm1P0moPLzs3.jpg" alt="" loading="lazy"></div>
+        <div class="tonight-card-title">9-1-1</div>
+        <div class="tonight-card-source">📺 On 37 WE tv at 1:06 AM</div>
+      </a>
+      <a class="tonight-card" href="watch_tonight.html">
+        <div class="tonight-card-poster"><img src="https://image.tmdb.org/t/p/w300/oD3Eey4e4Z259XLm3eD3WGcoJAh.jpg" alt="" loading="lazy"></div>
+        <div class="tonight-card-title">Now You See Me: Now You Don't</div>
+        <div class="tonight-card-source">📺 On 290 Starz in Black…</div>
+      </a>
+  </div>
+</section>
+<hr class="divider">
+
+<!-- ── Add to Watchlist ─────────────────────────────────────────────────── -->
+<section class="search-section">
+  <div class="search-bar">
+    <input type="text" id="searchInput" placeholder="Search for a movie or TV show to add…"
+           autocomplete="off" />
+    <div class="type-toggle">
+      <button class="type-btn active" data-type="movie" onclick="setType('movie')">Movie</button>
+      <button class="type-btn" data-type="tv" onclick="setType('tv')">TV Show</button>
+    </div>
+  </div>
+  <div id="searchResults" class="search-results"></div>
+  <div class="search-hint" id="searchHint"></div>
+</section>
+
+<div class="section-label">Tools</div>
+<div class="grid">
+
+  <a class="card card-discovery" href="trakt_discovery.html">
+    <div class="icon">🔭</div>
+    <h2>Streaming Discovery</h2>
+    <p>Browse trending, anticipated, and popular titles across streaming services.
+       Filter by provider, category, or type — and add anything to your Trakt watchlist in one click.</p>
+    <div class="go">Open Streaming Discovery →</div>
+  </a>
+
+  <a class="card card-library" href="my_watchlist.html">
+    <div class="icon">📚</div>
+    <h2>My Media Library</h2>
+    <p>Your full Notion media library — movies and TV shows with posters, genres, actors, and filters.
+       Search, sort, and explore everything you've watched or want to watch.</p>
+    <div class="go">Open My Media Library →</div>
+  </a>
+
+  <a class="card card-ytv" href="ytv_guide.html">
+    <div class="icon">📺</div>
+    <h2>YouTube TV Guide</h2>
+    <p>A 14-day TV guide cross-referenced with your Notion watchlist and Trakt recommendations.
+       Highlights watchlist titles, Trakt picks, and trending shows airing on your channels.</p>
+    <div class="go">Open YouTube TV Guide →</div>
+  </a>
+
+  <a class="card card-calendar" href="calendar.html">
+    <div class="icon">📅</div>
+    <h2>Upcoming Episodes</h2>
+    <p>A 14-day calendar of upcoming episodes pulled from your Trakt account.
+       See what's airing for every show on your watchlist at a glance.</p>
+    <div class="go">Open Episode Calendar →</div>
+  </a>
+
+  <a class="card card-randomizer" href="watch_tonight.html">
+    <div class="icon">🌙</div>
+    <h2>What Should I Watch Tonight?</h2>
+    <p>A curated pick combining what's on TV, what's trending, what's expiring,
+       and your watchlist — with a dash of surprise. Refreshes every run.</p>
+    <div class="go">See Tonight's Picks →</div>
+  </a>
+
+  <a class="card card-recommendations" href="recommendations.html">
+    <div class="icon">🎯</div>
+    <h2>Recommendations</h2>
+    <p>Personalized suggestions based on your recently watched titles.
+       Discover similar movies and shows you haven't seen yet.</p>
+    <div class="go">View Recommendations →</div>
+  </a>
+
+  <a class="card card-mood" href="mood_picker.html">
+    <div class="icon">🎭</div>
+    <h2>Mood Picker</h2>
+    <p>Pick a vibe — Feel-Good, Edge of My Seat, Date Night, Hidden Gems, and more.
+       Get curated picks with a spotlight suggestion and shuffle for each mood.</p>
+    <div class="go">Pick a Mood →</div>
+  </a>
+
+</div>
+<footer>Generated Monday, June 1 at 8:23 AM</footer>
+<script>
+const API_URL = 'https://media-hub-api.agreiter81.workers.dev';
+let searchType = 'movie';
+let searchTimer = null;
+
+function setType(t) {
+  searchType = t;
+  document.querySelectorAll('.type-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.type === t);
+  });
+  const q = document.getElementById('searchInput').value.trim();
+  if (q.length >= 2) doSearch(q);
+}
+
+document.getElementById('searchInput').addEventListener('input', function() {
+  clearTimeout(searchTimer);
+  const q = this.value.trim();
+  if (q.length < 2) {
+    document.getElementById('searchResults').innerHTML = '';
+    document.getElementById('searchHint').textContent = '';
+    return;
+  }
+  searchTimer = setTimeout(() => doSearch(q), 350);
+});
+
+async function doSearch(query) {
+  const box = document.getElementById('searchResults');
+  const hint = document.getElementById('searchHint');
+  box.innerHTML = '<div style="color:#555;font-size:0.85em;padding:8px">Searching…</div>';
+  hint.textContent = '';
+  try {
+    const r = await fetch(API_URL + '/api/search?q=' + encodeURIComponent(query) + '&type=' + searchType);
+    const d = await r.json();
+    if (!r.ok) { box.innerHTML = '<div style="color:#e74c3c;font-size:0.85em;padding:8px">' + (d.error||'Search failed') + '</div>'; return; }
+    const results = d.results || [];
+    if (!results.length) { box.innerHTML = '<div style="color:#555;font-size:0.85em;padding:8px">No results found.</div>'; return; }
+    box.innerHTML = results.map(item => `
+      <div class="search-result">
+        ${item.poster ? `<img class="sr-poster" src="${item.poster}" alt="">` : '<div class="sr-poster"></div>'}
+        <div class="sr-info">
+          <div><span class="sr-title">${esc(item.title)}</span><span class="sr-year">${item.year}</span></div>
+          <div class="sr-meta">${esc(item.overview)}</div>
+          ${item.rating ? `<div class="sr-rating">★ ${item.rating}</div>` : ''}
+        </div>
+        <button class="sr-add" onclick="addTitle(${item.id},'${searchType}',this)">+ Add</button>
+      </div>`).join('');
+    hint.textContent = results.length + ' result' + (results.length>1?'s':'');
+  } catch(e) {
+    box.innerHTML = '<div style="color:#e74c3c;font-size:0.85em;padding:8px">Network error — is the API running?</div>';
+  }
+}
+
+function esc(s) { const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+
+async function addTitle(tmdbId, type, btn) {
+  if (btn.classList.contains('added') || btn.classList.contains('exists') || btn.classList.contains('loading')) return;
+  // Ask for PIN (remembered for this session)
+  let pin = sessionStorage.getItem('hub_pin');
+  if (!pin) {
+    pin = prompt('Enter your PIN to add titles:');
+    if (!pin) { return; }
+    sessionStorage.setItem('hub_pin', pin);
+  }
+  btn.classList.add('loading');
+  btn.textContent = 'Adding…';
+  try {
+    const r = await fetch(API_URL + '/api/add', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({tmdb_id: tmdbId, type: type, pin: pin})
+    });
+    const d = await r.json();
+    if (r.status === 409) {
+      btn.className = 'sr-add exists';
+      btn.textContent = 'Already added';
+    } else if (r.ok) {
+      btn.className = 'sr-add added';
+      btn.textContent = '✓ Added!';
+      // Save to localStorage so Media Library page can show it immediately
+      try {
+        const pending = JSON.parse(localStorage.getItem('hub_recently_added') || '[]');
+        pending.push({
+          title: d.title,
+          status: 'to_watch',
+          show_id: d.tmdb_id,
+          genres: d.genres || [],
+          actors: (d.actors || []).join(', '),
+          poster: d.poster || '',
+          streaming_url: d.notion_url || '',
+          last_watched: '',
+          created: new Date().toISOString(),
+          notion_id: '',
+          vote_average: 0,
+          total_episodes: 0,
+          year: 0,
+          runtime: 0,
+          vote_count: 0,
+          platforms: [],
+          trakt_slug: '',
+          leaving_soon: null,
+          _from_hub: true,
+          _type: type === 'movie' ? 'movie' : 'tv'
+        });
+        localStorage.setItem('hub_recently_added', JSON.stringify(pending));
+      } catch(e2) {}
+    } else {
+      if (r.status === 401) sessionStorage.removeItem('hub_pin');
+      btn.className = 'sr-add error';
+      btn.textContent = r.status === 401 ? 'Wrong PIN' : (d.error || 'Failed');
+      setTimeout(() => { btn.className='sr-add'; btn.textContent='+ Add'; }, 2500);
+    }
+  } catch(e) {
+    btn.className = 'sr-add error';
+    btn.textContent = 'Error';
+    setTimeout(() => { btn.className='sr-add'; btn.textContent='+ Add'; }, 2500);
+  }
+}
+</script>
+</body></html>

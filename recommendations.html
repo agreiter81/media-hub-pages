@@ -1,0 +1,152 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Recommendations — Media Hub</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #0f0f1a; color: #e0e0e0; font-family: system-ui, sans-serif; }
+header { background: #14142b; padding: 18px 24px; border-bottom: 1px solid #1e1e30;
+          text-align: center; }
+header h1 { font-size: 1.3em; color: #fff; }
+header .sub { font-size: 0.75em; color: #555; margin-top: 4px; }
+.back-link { display: inline-block; margin: 16px 24px 0; font-size: 0.82em;
+              color: #4a90e2; text-decoration: none; }
+.back-link:hover { text-decoration: underline; }
+.rec-group { max-width: 1200px; margin: 24px auto; padding: 0 20px; }
+.rec-group-header { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+.rec-source-poster { width: 50px; height: 75px; border-radius: 6px; object-fit: cover; }
+.rec-source-label { font-size: 0.72em; color: #888; }
+.rec-source-title { font-size: 1.1em; font-weight: 700; color: #fff; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
+.card { background: #1e1e30; border-radius: 12px; overflow: hidden;
+         border: 1px solid #2a2a3e; transition: transform 0.15s, box-shadow 0.15s; }
+.card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
+.poster { position: relative; }
+.poster img { width: 100%; aspect-ratio: 2/3; object-fit: cover; display: block; }
+.no-poster { width: 100%; aspect-ratio: 2/3; display: flex; align-items: center;
+              justify-content: center; font-size: 3em; color: #2e2e48; background: #1a1a2e; }
+.rating-badge { position: absolute; top: 0; right: 0; background: rgba(0,0,0,0.78);
+                 font-size: 0.67em; font-weight: 700; padding: 3px 7px;
+                 border-radius: 0 0 0 8px; color: #f5c518; }
+.type-badge { position: absolute; top: 0; left: 0; background: rgba(0,0,0,0.78);
+               font-size: 0.62em; padding: 3px 7px; border-radius: 0 0 8px 0;
+               color: #aaa; }
+.info { padding: 10px; }
+.card-title { font-size: 0.88em; font-weight: 600; margin-bottom: 4px;
+               overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.year { font-size: 0.75em; color: #666; margin-left: 4px; font-weight: 400; }
+.genres { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 6px; }
+.gtag { font-size: 0.6em; background: #252538; color: #9090b8;
+         padding: 2px 6px; border-radius: 8px; }
+.actors { font-size: 0.68em; color: #666; margin-bottom: 6px;
+           overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.platforms { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 6px; }
+.ptag { font-size: 0.6em; background: #1a2e1a; color: #6abf6a;
+         padding: 2px 6px; border-radius: 8px; }
+.overview { font-size: 0.68em; color: #555; line-height: 1.4; margin-bottom: 8px;
+             display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+             overflow: hidden; }
+.links { display: flex; flex-direction: column; gap: 4px; }
+.add-btn { display: block; text-align: center; padding: 6px; border-radius: 8px;
+            font-size: 0.75em; font-weight: 600; cursor: pointer; border: none;
+            transition: all 0.15s; }
+.add-btn.none { background: #4a90e2; color: #fff; }
+.add-btn.none:hover { background: #5a9ef2; }
+.add-btn.added { background: #27ae60; color: #fff; cursor: default; }
+.add-btn.loading { background: #333; color: #888; }
+.add-btn.error { background: #c0392b; color: #fff; }
+.trakt-link { display: block; text-align: center; font-size: 0.7em; color: #4a90e2;
+               text-decoration: none; padding: 3px; }
+.trakt-link:hover { text-decoration: underline; }
+footer { text-align: center; color: #333; font-size: 0.72em; padding: 30px; }
+</style></head><body>
+<header>
+  <h1>🎯 Recommendations</h1>
+  <div class="sub">Based on your recently watched titles — updated Monday, June 1 at 4:09 PM</div>
+</header>
+<a class="back-link" href="index.html">← Back to Media Hub</a>
+<div id="content"></div>
+<footer>Generated Monday, June 1 at 4:09 PM</footer>
+<script>
+const TRAKT_TOKEN     = '';
+const TRAKT_CLIENT_ID = '';
+const RECS = [{"tmdb_id": 264227, "title": "Stripped", "kind": "movie", "poster_path": "/sEIXLQCzDKBu7m3DYo4jR6hOJRD.jpg", "vote_average": 3.7, "vote_count": 35, "overview": "Four friends head to Vegas for a 21st birthday in hopes of finding adventure, debauchery and memories that will last them a lifetime.", "release_date": "2013-05-14", "source_title": "Summer of 69", "source_poster": "https://image.tmdb.org/t/p/w500/xBmsHHLwvwI29oyFE48fKAnSQyk.jpg", "poster": "https://image.tmdb.org/t/p/w500/sEIXLQCzDKBu7m3DYo4jR6hOJRD.jpg", "genres": ["Horror", "Thriller", "Comedy"], "actors": "Nicole Sienna, Josh Cole, Alvaro Orlando", "trailer_key": "Frxpjk_CApQ", "trakt_slug": "stripped-2013", "platforms": ["Fawesome"]}, {"tmdb_id": 11115, "title": "Deal", "kind": "movie", "poster_path": "/zm1FN17vlQb3h5RdQfjPzNvDLWe.jpg", "vote_average": 5.4, "vote_count": 75, "overview": "As an ex-gambler teaches a hot-shot college kid some things about playing cards, he finds himself pulled into the world series of poker, where his protégé is his toughest competition.", "release_date": "2008-01-29", "source_title": "Summer of 69", "source_poster": "https://image.tmdb.org/t/p/w500/xBmsHHLwvwI29oyFE48fKAnSQyk.jpg", "poster": "https://image.tmdb.org/t/p/w500/zm1FN17vlQb3h5RdQfjPzNvDLWe.jpg", "genres": ["Comedy", "Drama"], "actors": "Burt Reynolds, Bret Harrison, Shannon Elizabeth", "trailer_key": "zKkmfiGxY5w", "trakt_slug": "deal-2008", "platforms": ["Amazon Prime Video", "fuboTV", "MGM+", "Philo", "JustWatch TV", "Plex", "Fawesome", "The Roku Channel", "Fandango at Home Free", "Amazon Prime Video Free with Ads", "Tubi TV"]}, {"tmdb_id": 11543, "title": "Kingpin", "kind": "movie", "poster_path": "/lVpejjxzBujSjLpxQ7hGe1s0wP2.jpg", "vote_average": 6.5, "vote_count": 976, "overview": "After bowler Roy Munson swindles the wrong crowd and is left with a hook for a hand, he settles into impoverished obscurity. That is, until he uncovers the next big thing: an Amish kid named Ishmael. So, the corrupt and the hopelessly naive hit the circuit intent on settling an old score with Big Ern.", "release_date": "1996-07-04", "source_title": "Summer of 69", "source_poster": "https://image.tmdb.org/t/p/w500/xBmsHHLwvwI29oyFE48fKAnSQyk.jpg", "poster": "https://image.tmdb.org/t/p/w500/lVpejjxzBujSjLpxQ7hGe1s0wP2.jpg", "genres": ["Comedy"], "actors": "Woody Harrelson, Randy Quaid, Vanessa Angel", "trailer_key": "1DsveTPI4aM", "trakt_slug": "", "platforms": ["MGM+", "Philo", "Fawesome"]}, {"tmdb_id": 977979, "title": "1660 Vine", "kind": "movie", "poster_path": "/7aTYybcU4Jjfqbj9McFFNka6qsz.jpg", "vote_average": 10.0, "vote_count": 2, "overview": "A group of influencers in a famed Hollywood apartment building pursue their dreams of social media stardom. The residents of 1660 Vine confront questions of fame, influence, identity, and mental health. All the while, the residents update their followers through vlogs, gaming streams, makeup tutorials, TikTok dances, songs, and pranks, as they navigate their search for identity, discovering the difference between who they present themselves to be, and who they really are.", "release_date": "2022-11-04", "source_title": "Because I Said So", "source_poster": "https://image.tmdb.org/t/p/w500/wQtGQnr5RPnmzSfV9zUcgh8R9NX.jpg", "poster": "https://image.tmdb.org/t/p/w500/7aTYybcU4Jjfqbj9McFFNka6qsz.jpg", "genres": ["Music", "Comedy"], "actors": "Jessica Ruth Bell, CJ Cruz, Ty Deran", "trailer_key": "MOwPBsXDZGM", "trakt_slug": "1660-vine-2022", "platforms": ["Amazon Prime Video", "Fawesome", "Tubi TV"]}, {"tmdb_id": 107239, "title": "Brothers O'Toole", "kind": "movie", "poster_path": "/z7U5ei0LxYSZ2KAUcOdKnmXjGdd.jpg", "vote_average": 6.0, "vote_count": 5, "overview": "The O'Toole Brothers are Eastern con men, exceptionally good at talking their way out of tight situations. When they ride into Molybdenum, Colorado, not suspecting the riches beneath the streets, they turn the sleepy mining town upside-down for their search for the gold. High-spirited hijinks ensue, with the brothers involved in everything from stolen gambling equipment to a \"belchin', cussin' and spittin' \" contest.", "release_date": "1973-05-16", "source_title": "Because I Said So", "source_poster": "https://image.tmdb.org/t/p/w500/wQtGQnr5RPnmzSfV9zUcgh8R9NX.jpg", "poster": "https://image.tmdb.org/t/p/w500/z7U5ei0LxYSZ2KAUcOdKnmXjGdd.jpg", "genres": ["Western", "Comedy"], "actors": "John Astin, Pat Carroll, Hans Conried", "trailer_key": null, "trakt_slug": "brothers-o-toole-1973", "platforms": ["Amazon Prime Video", "Hoopla", "Plex", "Fawesome", "Mometu", "Tubi TV"]}, {"tmdb_id": 12223, "title": "The Stepford Wives", "kind": "movie", "poster_path": "/5z1ogJJmQkCoU62VJmut4nnc2qs.jpg", "vote_average": 6.7, "vote_count": 361, "overview": "Joanna Eberhart comes to the town of Stepford, Connecticut with her family, but soon discovers there lies a sinister truth in the all too perfect behavior of the female residents.", "release_date": "1975-02-12", "source_title": "Apex", "source_poster": "https://image.tmdb.org/t/p/w500/5TGSFX6dxYfM2balJrFoSVB42Nv.jpg", "poster": "https://image.tmdb.org/t/p/w500/5z1ogJJmQkCoU62VJmut4nnc2qs.jpg", "genres": ["Mystery", "Thriller", "Science Fiction", "Horror"], "actors": "Katharine Ross, Paula Prentiss, Nanette Newman", "trailer_key": "Y9WOMDsMy78", "trakt_slug": "the-stepford-wives-1975", "platforms": ["Mometu", "Tubi TV"]}, {"tmdb_id": 7183, "title": "Perfect Stranger", "kind": "movie", "poster_path": "/i7D5QqQ0q5EXU1UuZVY9KwIxoYR.jpg", "vote_average": 5.8, "vote_count": 1022, "overview": "A journalist goes undercover to ferret out businessman Harrison Hill as her best friend's killer. Posing as one of his temps, she enters into a game of online cat-and-mouse.", "release_date": "2007-04-11", "source_title": "Apex", "source_poster": "https://image.tmdb.org/t/p/w500/5TGSFX6dxYfM2balJrFoSVB42Nv.jpg", "poster": "https://image.tmdb.org/t/p/w500/i7D5QqQ0q5EXU1UuZVY9KwIxoYR.jpg", "genres": ["Thriller", "Crime", "Mystery"], "actors": "Halle Berry, Bruce Willis, Giovanni Ribisi", "trailer_key": "cL6WWHgp0bo", "trakt_slug": "perfect-stranger-2007", "platforms": ["Kanopy", "Hoopla"]}, {"tmdb_id": 846, "title": "Greg the Bunny", "kind": "tv", "poster_path": "/okpBzQwxgN8MezZXYlyMIt4M9WD.jpg", "vote_average": 6.3, "vote_count": 14, "overview": "Greg the Bunny is an American television sitcom that originally aired on Fox TV in 2002. It starred Seth Green and a hand puppet named Greg the Bunny, originally invented by the team of Sean S. Baker, Spencer Chinoy and Dan Milano. Milano and Chinoy wrote and co-produced the Fox show.", "release_date": "2002-03-27", "source_title": "Brooklyn Nine-Nine", "source_poster": "https://image.tmdb.org/t/p/w500/qYjAdP0n62dJ9WLl8WGeQj7CGPH.jpg", "poster": "https://image.tmdb.org/t/p/w500/okpBzQwxgN8MezZXYlyMIt4M9WD.jpg", "genres": ["Comedy"], "actors": "Eugene Levy, Seth Green, Bob Gunton", "trailer_key": null, "trakt_slug": "greg-the-bunny", "platforms": ["Tubi TV"]}, {"tmdb_id": 712, "title": "Designing Women", "kind": "tv", "poster_path": "/pqhes4TGTDj9zMg9agrADKo8RnL.jpg", "vote_average": 6.9, "vote_count": 35, "overview": "Julia Sugarbaker, Mary Jo Shively, Charlene Frazier-Stillfield and Suzanne Sugarbaker are associates at their design firm, Sugarbaker and Associates. Julia is the owner and is very outspoken and strong-willed. Mary Jo is a divorced single-parent whom is just as strong-willed as Julia, but isn't as self-confident. Charlene is the naive and trusting farm girl from Poplar Bluff, Missouri. Suzanne is the self-centered ex-beauty queen whom has a number of wealthy ex-husbands.", "release_date": "1986-09-29", "source_title": "Running Point", "source_poster": "https://image.tmdb.org/t/p/w500/q8KnHFt3igvQXKYDLtfERSYAY7F.jpg", "poster": "https://image.tmdb.org/t/p/w500/pqhes4TGTDj9zMg9agrADKo8RnL.jpg", "genres": ["Comedy"], "actors": "Dixie Carter, Annie Potts, Jan Hooks", "trailer_key": "9GqwsZ6Pn0o", "trakt_slug": "designing-women", "platforms": ["Hulu"]}, {"tmdb_id": 347, "title": "Ultimate Force", "kind": "tv", "poster_path": "/616qGkxSeZBAX5t1fIO7h6WY2Ec.jpg", "vote_average": 6.5, "vote_count": 20, "overview": "This covert combat series focuses on the Red Troop, an elite group of soldiers from the British military's Special Air Service group.", "release_date": "2002-09-16", "source_title": "Obliterated", "source_poster": "https://image.tmdb.org/t/p/w500/tWPAKr5RaZCQ1jaO2VRmvcIOrKh.jpg", "poster": "https://image.tmdb.org/t/p/w500/616qGkxSeZBAX5t1fIO7h6WY2Ec.jpg", "genres": ["Action & Adventure", "Drama", "War & Politics"], "actors": "Ross Kemp, Miles Anderson, Christopher Fox", "trailer_key": null, "trakt_slug": "ultimate-force", "platforms": ["The Roku Channel", "Pluto TV", "Amazon Prime Video Free with Ads", "Cineverse", "Tubi TV"]}, {"tmdb_id": 295778, "title": "Scrubs", "kind": "tv", "poster_path": "/nNNM50G7p9C3n4vgidCiybsIdHA.jpg", "vote_average": 7.9, "vote_count": 66, "overview": "J.D. & Turk scrub in together for the first time in a long time–medicine has changed, interns have changed, but their bromance has stood the test of time. Characters new and old navigate the waters of Sacred Heart with laughter, heart and some surprises along the way.", "release_date": "2026-02-25", "source_title": "Obliterated", "source_poster": "https://image.tmdb.org/t/p/w500/tWPAKr5RaZCQ1jaO2VRmvcIOrKh.jpg", "poster": "https://image.tmdb.org/t/p/w500/nNNM50G7p9C3n4vgidCiybsIdHA.jpg", "genres": ["Comedy"], "actors": "Zach Braff, Donald Faison, Sarah Chalke", "trailer_key": "dJq8WJ5lMec", "trakt_slug": "scrubs-2026", "platforms": ["Hulu", "fuboTV", "Spectrum On Demand"]}, {"tmdb_id": 1516, "title": "The A-Team", "kind": "tv", "poster_path": "/p2qWJJ7Wyaq2xvgIHuBw4zVNBij.jpg", "vote_average": 7.5, "vote_count": 1060, "overview": "A fictional group of ex-United States Army Special Forces personnel work as soldiers of fortune while on the run from the Army after being branded as war criminals for a \"crime they didn't commit.\"", "release_date": "1983-01-23", "source_title": "Obliterated", "source_poster": "https://image.tmdb.org/t/p/w500/tWPAKr5RaZCQ1jaO2VRmvcIOrKh.jpg", "poster": "https://image.tmdb.org/t/p/w500/p2qWJJ7Wyaq2xvgIHuBw4zVNBij.jpg", "genres": ["Action & Adventure", "Comedy", "Crime"], "actors": "George Peppard, Dirk Benedict, Mr. T", "trailer_key": null, "trakt_slug": "the-a-team", "platforms": ["Tubi TV"]}, {"tmdb_id": 64396, "title": "Patriot", "kind": "tv", "poster_path": "/xq3xeWFfjb8UeNy1y9JMUhL6Ptq.jpg", "vote_average": 7.6, "vote_count": 183, "overview": "To prevent Iran from going nuclear, intelligence officer John Tavner must forgo all safety nets and assume a perilous \"non-official cover\" -- that of a mid-level employee at a Midwestern industrial piping firm.", "release_date": "2015-11-03", "source_title": "Obliterated", "source_poster": "https://image.tmdb.org/t/p/w500/tWPAKr5RaZCQ1jaO2VRmvcIOrKh.jpg", "poster": "https://image.tmdb.org/t/p/w500/xq3xeWFfjb8UeNy1y9JMUhL6Ptq.jpg", "genres": ["Comedy", "Drama"], "actors": "Michael Dorman, Terry O'Quinn, Kurtwood Smith", "trailer_key": "HW6usoJXCPY", "trakt_slug": "patriot-2015", "platforms": ["Amazon Prime Video", "Amazon Prime Video Free with Ads"]}, {"tmdb_id": 476, "title": "She Spies", "kind": "tv", "poster_path": "/m5jLMLqMhFOq4zLr9bvEgPOaSzB.jpg", "vote_average": 7.5, "vote_count": 28, "overview": "She Spies is an action-adventure television show that ran from September 9, 2002 until May 17, 2004, in two seasons. The show was sold into syndication but the first four episodes premiered on the NBC network, whose syndication arm was one of the producers. Disappointing ratings during the show's second season led to its cancellation after season two ended. She Spies bore noticeable production and directive similarities with Charlie's Angels.", "release_date": "2002-07-20", "source_title": "Chuck", "source_poster": "https://image.tmdb.org/t/p/w500/vEZvGVVMjk1TRs59nfypTI5lAXj.jpg", "poster": "https://image.tmdb.org/t/p/w500/m5jLMLqMhFOq4zLr9bvEgPOaSzB.jpg", "genres": ["Action & Adventure", "Comedy"], "actors": "Natasha Henstridge, Kristen Miller, Natashia Williams", "trailer_key": null, "trakt_slug": "she-spies", "platforms": ["Amazon Prime Video"]}];
+
+function escHtml(s) {
+    return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+const PROVIDER_LOGOS = {"AD tv": "https://image.tmdb.org/t/p/w45/mK8nfCXfwoAa6cAkHUSKCkLEIKK.jpg", "ALLBLK Amazon channel": "https://image.tmdb.org/t/p/w45/dj9jb4fiaHILc5GtF76BXzrsGZj.jpg", "ALLBLK Apple TV channel": "https://image.tmdb.org/t/p/w45/voNwdFHk9uc2ZEWKZlwSQDsfRJN.jpg", "AMC": "https://image.tmdb.org/t/p/w45/92Kx25Od0habmgRBTqT6XWgwgKt.jpg", "AMC+": "https://image.tmdb.org/t/p/w45/ovmu6uot1XVvsemM2dDySXLiX57.jpg", "Amasian TV": "https://image.tmdb.org/t/p/w45/oG9cLnUa37Rg6zzlILTqtamMgzu.jpg", "Amazon Prime Video": "https://image.tmdb.org/t/p/w45/pvske1MyAoymrs5bguRfVqYiM9a.jpg", "Amazon Prime Video Free with Ads": "https://image.tmdb.org/t/p/w45/gZlCYHPx9a0TRUCEeTvHXBf9ibX.jpg", "Angel Studios": "https://image.tmdb.org/t/p/w45/znTpq1dy5TYxm1QLoxORzuOuwYq.jpg", "Apple TV+": "https://image.tmdb.org/t/p/w45/mcbz1LgtErU9p4UdbZ0rG6RTWHX.jpg", "Artiflix": "https://image.tmdb.org/t/p/w45/5MsbQCp7FpYr3INLpeKDLJrlDh8.jpg", "BBC America": "https://image.tmdb.org/t/p/w45/jfXLhMzHHmBYrtE9ZaW7as2RA98.jpg", "BET+": "https://image.tmdb.org/t/p/w45/yFk3WffvGGUtIjJBSV0pgsciaEB.jpg", "BYUtv": "https://image.tmdb.org/t/p/w45/9YYuvhTfMuBR7keJ7DPa1GFlDrF.jpg", "Bloodstream": "https://image.tmdb.org/t/p/w45/qlsnWCrmcisQH5JnEDxPV2v2vlb.jpg", "BritBox": "https://image.tmdb.org/t/p/w45/8oA7IcDNNUtBa9JYB5kQ8hrDz5o.jpg", "Britbox": "https://image.tmdb.org/t/p/w45/8oA7IcDNNUtBa9JYB5kQ8hrDz5o.jpg", "Chilling": "https://image.tmdb.org/t/p/w45/cREEVLl0rxXdK0rfdxJeLX9bssS.jpg", "Cineverse": "https://image.tmdb.org/t/p/w45/jpEV1w3CnrpDQ1vRvGQIZF1S6vA.jpg", "Criterion Channel": "https://image.tmdb.org/t/p/w45/yhrtzYd43pFIhRq0ruO8umJPuyn.jpg", "Cultpix": "https://image.tmdb.org/t/p/w45/uauVx3dGWt0GICqdMCBYJObd3Mo.jpg", "Darkroom": "https://image.tmdb.org/t/p/w45/8G7qvHF7hdmXpfxxqtF1WT9ib68.jpg", "Discovery+": "https://image.tmdb.org/t/p/w45/lgudHqEtTOzkMWlpTjU1oUyoUSZ.jpg", "Disney+": "https://image.tmdb.org/t/p/w45/97yvRBw1GzX7fXprcF80er19ot.jpg", "DistroTV": "https://image.tmdb.org/t/p/w45/6gdKp9OwHgDLloethSPxZbtovkl.jpg", "Dove Channel": "https://image.tmdb.org/t/p/w45/i9GZoDffI29FmE7Y2Bk6hI6i0uR.jpg", "Eternal Family": "https://image.tmdb.org/t/p/w45/in4AaJPqO6wCquDcXsirin7UQBb.jpg", "FXNow": "https://image.tmdb.org/t/p/w45/m4KUe3UoTnLgN4g6txYMnBqeUI5.jpg", "Fandango at Home Free": "https://image.tmdb.org/t/p/w45/19fkcOz0xeUgCVW8tO85uOYnYK9.jpg", "Fandor": "https://image.tmdb.org/t/p/w45/45lSM3J7Ts4TXTtDv0EuTPL0eH5.jpg", "Fawesome": "https://image.tmdb.org/t/p/w45/pSUa7lMYLoQAU00ikXoHxmOfTZ9.jpg", "Filmzie": "https://image.tmdb.org/t/p/w45/eUBxtrqO26wAJfYOZJOzhQEo3mm.jpg", "Flix Premiere": "https://image.tmdb.org/t/p/w45/wCKOLlsilq4I0Iv1NSJTToPEQAo.jpg", "FlixFling": "https://image.tmdb.org/t/p/w45/yFGu4sSzwUMfhwmSsZgez8QhaVl.jpg", "FlixHouse": "https://image.tmdb.org/t/p/w45/69eoIMVggmpyY7Aa8qeN4jsREfd.jpg", "Gaiam TV Yoga & Fit": "https://image.tmdb.org/t/p/w45/pJRVLFLEPNeXra6AoRp5SQ2txhy.jpg", "History Vault": "https://image.tmdb.org/t/p/w45/z5jtxEEeJEK1kYDqbyXzfquolC9.jpg", "Hoopla": "https://image.tmdb.org/t/p/w45/j7D006Uy3UWwZ6G0xH6BMgIWTzH.jpg", "Hulu": "https://image.tmdb.org/t/p/w45/bxBlRPEPpMVDc4jMhSrTf2339DW.jpg", "Investigation Discovery": "https://image.tmdb.org/t/p/w45/1oxTHsIcxJwVcubHLnHwl0g60EI.jpg", "JustWatch TV": "https://image.tmdb.org/t/p/w45/g2IaWyo6jCY0rIFjb4qgZ0bSmm3.jpg", "Kanopy": "https://image.tmdb.org/t/p/w45/rcBwnERpNfPfWB5DaSTyEMCZbCA.jpg", "Lifetime Movie Club": "https://image.tmdb.org/t/p/w45/m4ofXxkTOj04N8df5KJGCIjnWii.jpg", "MGM+": "https://image.tmdb.org/t/p/w45/efu1Cqc63XrPBoreYnf2mn0Nizj.jpg", "MUBI": "https://image.tmdb.org/t/p/w45/x570VpH2C9EKDf1riP83rYc5dnL.jpg", "Max": "https://image.tmdb.org/t/p/w45/jbe4gVSfRlbPTdESXhEKpornsfu.jpg", "Mhz Choice": "https://image.tmdb.org/t/p/w45/tnxLjN2lLYpkTIX8NPSId6bgqh8.jpg", "Midnight Pulp": "https://image.tmdb.org/t/p/w45/8s4adSGz4UmVOP5uegNkoikSFLV.jpg", "Mometu": "https://image.tmdb.org/t/p/w45/q5nP5VaOM4YdkCjJmo7vC5wpCOw.jpg", "MovieSphere+": "https://image.tmdb.org/t/p/w45/bEI5UgVjthdjiBXGiKRy7uSCRvF.jpg", "Netflix": "https://image.tmdb.org/t/p/w45/pbpMk2JmcoNnQwx5JGpXngfoWtp.jpg", "Night Flight Plus": "https://image.tmdb.org/t/p/w45/zOWoxUMmGW0OfDFAQsCosho2PZz.jpg", "OVID": "https://image.tmdb.org/t/p/w45/jxavsObOHN6UqlbuZQ1UpVRVv6X.jpg", "Paramount+": "https://image.tmdb.org/t/p/w45/fts6X10Jn4QT0X6ac3udKEn2tJA.jpg", "Peacock": "https://image.tmdb.org/t/p/w45/2aGrp1xw3qhwCYvNGAJZPdjfeeX.jpg", "Philo": "https://image.tmdb.org/t/p/w45/ptmbGSttkyzawLbxx9MElmxKuVo.jpg", "Plex": "https://image.tmdb.org/t/p/w45/vLZKlXUNDcZR7ilvfY9Wr9k80FZ.jpg", "Pluto TV": "https://image.tmdb.org/t/p/w45/dB8G41Q6tSL5NBisrIeqByfepBc.jpg", "Pure Flix": "https://image.tmdb.org/t/p/w45/7L4eXQD0yFVDKZ2qwYtxcV5gm6n.jpg", "Runtime": "https://image.tmdb.org/t/p/w45/xm8xr6LDdY5j2gjYf1S3yqaeRbE.jpg", "Shout! Factory TV": "https://image.tmdb.org/t/p/w45/y9jFndski0fRO4MHh3yg5PIL9ZI.jpg", "Showtime": "https://image.tmdb.org/t/p/w45/4kL33LoKd99YFIaSOoOPMQOSw1A.jpg", "Shudder": "https://image.tmdb.org/t/p/w45/vEtdiYRPRbDCp1Tcn3BEPF1Ni76.jpg", "Spectrum On Demand": "https://image.tmdb.org/t/p/w45/aAb9CUHjFe9Y3O57qnrJH0KOF1B.jpg", "Starz": "https://image.tmdb.org/t/p/w45/yIKwylTLP1u8gl84Is7FItpYLGL.jpg", "Sundance Now": "https://image.tmdb.org/t/p/w45/1Edma9SrJnqkQW3BqFd2rJNHZvX.jpg", "TBS": "https://image.tmdb.org/t/p/w45/cZvP3XsDKlHFhNIyHYCVPStXT5l.jpg", "TCM": "https://image.tmdb.org/t/p/w45/8SIxng8eznACvCTRsN1FZfd5Ycg.jpg", "TNT": "https://image.tmdb.org/t/p/w45/76CvnJAKAPbJuiXYwQGN7PFqOci.jpg", "The CW": "https://image.tmdb.org/t/p/w45/spcwROYevucLluqZZ8Fv75UuTBt.jpg", "The Roku Channel": "https://image.tmdb.org/t/p/w45/wQzSN83BnWVgO7xEh0SeTVqtrFv.jpg", "Troma NOW": "https://image.tmdb.org/t/p/w45/2CYF8CNs5WK3sB69K0AlmwUxrzv.jpg", "Tubi TV": "https://image.tmdb.org/t/p/w45/zLYr7OPvpskMA4S79E3vlCi71iC.jpg", "UP Faith & Family": "https://image.tmdb.org/t/p/w45/92iY4soQNVzNM02mHGjqovPdzdF.jpg", "USA Network": "https://image.tmdb.org/t/p/w45/A95qgiMz6ulV2SxeKcJ5Gc9pqGS.jpg", "VIX": "https://image.tmdb.org/t/p/w45/jwRPknT20dfU1GeVqbcDXFyvtdG.jpg", "Vimeo": "https://image.tmdb.org/t/p/w45/hx3gKFCzNFFdqRkfoA7CtcMmF12.jpg", "Xumo Play": "https://image.tmdb.org/t/p/w45/xfKqqWYYIyvjECOFOaYtJdD7gl3.jpg", "YOW.tv": "https://image.tmdb.org/t/p/w45/ApDOxwTDcRbmgCORofsBftwm53B.jpg", "YouTube Free": "https://image.tmdb.org/t/p/w45/4tJBhJcuF1ZstI5Yqu82G0yroLa.jpg", "YouTube TV": "https://image.tmdb.org/t/p/w45/x9zOHTUkQzt3PgPVKbMH9CKBwLK.jpg", "fuboTV": "https://image.tmdb.org/t/p/w45/9BgaNQRMDvVlji1JBZi6tcfxpKx.jpg", "tru TV": "https://image.tmdb.org/t/p/w45/mMJ6AQUpHDsD5s2Q2dnbpX1NFwp.jpg", "Lifetime": "https://image.tmdb.org/t/p/w45/tWq6XvHqPjBW1BZTpf4Nziy8CDD.jpg", "Cinemax": "https://image.tmdb.org/t/p/w45/ohcwolMl8E743CkS8MnhmJKOlRj.jpg", "Hallmark+": "https://image.tmdb.org/t/p/w45/wVxA3Rw87917VEXChiVKZpXUjSm.jpg", "Hallmark TV": "https://image.tmdb.org/t/p/w45/xPrDQ8zxayT6PDcdaixzyLXVlWB.jpg", "Shout! Factory": "https://image.tmdb.org/t/p/w45/ivRp15loTWoVy3eEHALoYEyXI8J.jpg", "ViX Premium": "https://image.tmdb.org/t/p/w45/6S6kGNEmB4iSq83FX2zWTz8aLMN.jpg", "Great American Pure Flix": "https://image.tmdb.org/t/p/w45/dSlc8zEOaeKC1y2RbypHSZIFzNy.jpg", "Echoboom": "https://image.tmdb.org/t/p/w45/5fjo9JkLUHsyFmvSxNINObCgkGj.jpg", "Wonder Project": "https://image.tmdb.org/t/p/w45/aCEpg6aKYM6UUYP95frtKYyVQWD.jpg", "Screambox": "https://image.tmdb.org/t/p/w45/vmXC3D9Kqtt9TEohDEmcaxnLYA5.jpg", "Fear Factory": "https://image.tmdb.org/t/p/w45/s1G5QtQxGzZGgNzqt3A78dMxz9z.jpg", "Full Moon": "https://image.tmdb.org/t/p/w45/xIu1EW7y2EC7RD3Wqe0Ogi5NAuo.jpg", "MZ Choice": "https://image.tmdb.org/t/p/w45/hTAIgvUnmu1Yv0wFVJRu9KKAPtJ.jpg", "Viaplay": "https://image.tmdb.org/t/p/w45/sElGn8Ml7yYKuAsceZYQ0nKpqHa.jpg", "Demand Africa": "https://image.tmdb.org/t/p/w45/tqHULphS5dyG0EjdAanhmHwTvlu.jpg", "Kartoon Channel": "https://image.tmdb.org/t/p/w45/INfMOg2Jd6PQlui9S7ZuFVrb48.jpg", "Magnolia Selects": "https://image.tmdb.org/t/p/w45/v2DlnoBWsXnWJQKKez6C6rjqzgk.jpg", "Monsters and Nightmares": "https://image.tmdb.org/t/p/w45/iNyKnUIIgICR71PO16ptEwJhzb2.jpg", "Eros Now Select": "https://image.tmdb.org/t/p/w45/cqgeSQHqKEkfcmsiy7GoCnf1Q2I.jpg", "BeFit": "https://image.tmdb.org/t/p/w45/9L1RVS2dqMJAHfEWMZcWOsZuENc.jpg", "The Surf Network": "https://image.tmdb.org/t/p/w45/mg6cM5baVFe1uiPGl4vQ9GuULRI.jpg", "Fuse+": "https://image.tmdb.org/t/p/w45/lRGoPIT0vFf3xDJgp6sxfDNsxeP.jpg", "FUEL TV+": "https://image.tmdb.org/t/p/w45/rfW4jnVRJ0dYv3AVqhupuindAGs.jpg", "IndiePix Unlimited": "https://image.tmdb.org/t/p/w45/2MK74M3Y7VLeaODobGxCH5m2Xdu.jpg"};
+function renderPlatformTag(name) {
+    const logo = PROVIDER_LOGOS[name];
+    if (logo) return '<img src="'+logo+'" alt="'+escHtml(name)+'" title="'+escHtml(name)+'" style="width:24px;height:24px;border-radius:4px">';
+    return '';
+}
+
+async function addToWatchlist(type, tmdbId, slug, btn) {
+    let pin = prompt('Enter your PIN:');
+    if (!pin) return;
+    btn.textContent = '...'; btn.className = 'add-btn loading'; btn.disabled = true;
+    try {
+        const resp = await fetch('https://media-hub-api.agreiter81.workers.dev/api/add', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tmdb_id: tmdbId, type: type, pin: pin })
+        });
+        if (resp.status === 401) {
+            btn.textContent = '+ Add to Watchlist'; btn.className = 'add-btn'; btn.disabled = false;
+            alert('Wrong PIN. Try again.');
+            return;
+        }
+        if (resp.ok || resp.status === 409) {
+            btn.textContent = resp.status === 409 ? '✓ Already Added!' : '✓ Added!'; btn.className = 'add-btn added';
+        } else {
+            console.error('Worker error:', resp.status);
+            btn.textContent = '✗ Error'; btn.className = 'add-btn error'; btn.disabled = false;
+        }
+    } catch(e) { btn.textContent = '✗ Error'; btn.className = 'add-btn error'; btn.disabled = false; }
+}
+
+// Group recs by source_title
+const groups = {};
+RECS.forEach(r => {
+    if (!groups[r.source_title]) groups[r.source_title] = { poster: r.source_poster, items: [] };
+    groups[r.source_title].items.push(r);
+});
+
+let html = '';
+for (const [source, data] of Object.entries(groups)) {
+    const posterImg = data.poster ? '<img class="rec-source-poster" src="'+escHtml(data.poster)+'" alt="">' : '';
+    html += '<div class="rec-group"><div class="rec-group-header">' + posterImg +
+            '<div><div class="rec-source-label">Because you watched</div>' +
+            '<div class="rec-source-title">' + escHtml(source) + '</div></div></div><div class="grid">';
+    data.items.forEach(r => {
+        const poster = r.poster ? '<img src="'+escHtml(r.poster)+'" alt="" loading="lazy">'
+                                : '<div class="no-poster">'+(r.kind==='tv'?'📺':'🎬')+'</div>';
+        const rating = r.vote_average ? '<div class="rating-badge">★ '+r.vote_average+'</div>' : '';
+        const typeB = '<div class="type-badge">'+(r.kind==='tv'?'📺 TV':'🎬 Movie')+'</div>';
+        const yr = r.release_date ? r.release_date.substring(0,4) : '';
+        const genres = (r.genres||[]).map(g => '<span class="gtag">'+escHtml(g)+'</span>').join('');
+        const slug = r.trakt_slug || '';
+        const traktUrl = slug
+            ? 'https://trakt.tv/'+(r.kind==='tv'?'shows':'movies')+'/'+slug
+            : 'https://trakt.tv/search?query='+encodeURIComponent(r.title)+'&type='+(r.kind==='tv'?'show':'movie');
+        const trailerUrl = r.trailer_key
+            ? 'https://www.youtube.com/watch?v='+r.trailer_key
+            : 'https://www.youtube.com/results?search_query='+encodeURIComponent(r.title+' official trailer');
+        html += '<div class="card"><div class="poster">'+poster+rating+typeB+'</div><div class="info">' +
+                '<div class="card-title">'+escHtml(r.title)+(yr?'<span class="year">'+yr+'</span>':'')+'</div>' +
+                (genres?'<div class="genres">'+genres+'</div>':'') +
+                (r.actors?'<div class="actors">'+escHtml(r.actors)+'</div>':'') +
+                ((r.platforms&&r.platforms.length)?'<div class="platforms">'+(r.platforms.map(p=>renderPlatformTag(p)).join(''))+'</div>':'') +
+                (r.overview?'<div class="overview">'+escHtml(r.overview)+'</div>':'') +
+                '<div class="links">' +
+                '<button class="add-btn none" onclick="addToWatchlist(\''+r.kind+'\','+r.tmdb_id+',\''+escHtml(slug)+'\',this)">+ Add to Watchlist</button>' +
+                '<a class="trakt-link" href="'+traktUrl+'" target="_blank">View on Trakt ↗</a>' +
+                '<a class="trakt-link" href="'+trailerUrl+'" target="_blank">🎬 Watch Trailer</a>' +
+                '</div></div></div>';
+    });
+    html += '</div></div>';
+}
+
+if (!RECS.length) html = '<div style="text-align:center;color:#555;padding:60px">No recommendations yet. Watch some titles first!</div>';
+document.getElementById('content').innerHTML = html;
+</script></body></html>
