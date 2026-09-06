@@ -300,9 +300,12 @@ header h1 { font-size:1.3em; color:#fff; }
 .day-nav a { color:#7eb8f7; text-decoration:none; font-size:0.85em; }
 .day-nav a:hover { text-decoration:underline; }
 .day-nav .day-title { font-weight:700; font-size:1em; }
-.section { max-width:1280px; margin:0 auto; padding:22px 20px 0; }
-.section h2 { font-size:1.05em; color:#fff; margin-bottom:4px; }
-.section-desc { font-size:0.78em; color:#666; margin-bottom:14px; }
+/* No horizontal padding on the container of a card grid — the grid brings its own,
+   and anything added here makes a card on this page narrower than the same card
+   elsewhere. The heading and blurb keep their indent instead. */
+.section { max-width:1280px; margin:0 auto; padding:22px 0 0; }
+.section h2 { font-size:1.05em; color:#fff; margin-bottom:4px; padding:0 20px; }
+.section-desc { font-size:0.78em; color:#666; margin-bottom:14px; padding:0 20px; }
 .divider { border:none; border-top:1px solid #1e1e30; margin:26px auto; max-width:1280px; }
 .empty-msg { color:#555; font-size:0.85em; padding:12px 0; }
 footer { text-align:center; color:#333; font-size:0.72em; padding:30px; }
@@ -349,7 +352,7 @@ window.hubPinClear = window.hubPinClear || function () { sessionStorage.removeIt
 
 <div class="mh-subnav"><a href="watch_tonight.html" class="active">🌙 Tonight's Picks</a><a href="ytv_guide.html" class="">📺 TV Guide</a><a href="youtube_tv.html" class="">➕ Add to YouTube TV</a><a href="calendar.html" class="">📅 Upcoming Episodes</a><a href="premieres.html" class="">🎬 Premieres</a><a href="tv_news.html" class="">📰 News</a></div>
 <header>
-  <div class="breadcrumb"><a href="watch_tonight.html">Watch</a><span style="color:#444;margin-left:auto;float:right">Sunday, September 6 at 8:32 AM</span></div>
+  <div class="breadcrumb"><a href="watch_tonight.html">Watch</a><span style="color:#444;margin-left:auto;float:right">Sunday, September 6 at 8:41 AM</span></div>
   <h1>🌙 What Should I Watch Thursday, September 10?</h1>
 </header>
 <div class="day-nav"><a href="watch_tonight_2026-09-09.html">← Previous</a><span class="day-title">📅 Thursday, September 10</span><a href="watch_tonight_2026-09-11.html">Next →</a></div>
@@ -952,5 +955,5 @@ function fillSec(secId, elId){
 }
 ['tonight','tv','expiring','watchlist','trending'].forEach(s => fillSec(s, 'sec-' + s));
 </script>
-<footer>Picks generated Sunday, September 6 at 8:32 AM · Refresh for new suggestions</footer>
+<footer>Picks generated Sunday, September 6 at 8:41 AM · Refresh for new suggestions</footer>
 </body></html>
