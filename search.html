@@ -162,6 +162,18 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
    extended to the whole card, so there is one gesture rather than two.
    `.card` sets overflow:hidden for its rounded corners, so the open state has to
    release that too or the extra content is clipped by the card itself. */
+/* An empty slot holding a row's space open. Invisible, no border, exactly the height
+   the filled version would be — so a card is the same size whether or not it has an
+   airing, a next episode, a progress bar or a last-watched date. */
+.reserved { visibility: hidden; }
+.next-ep.reserved { min-height: 15px; }
+.last-seen.reserved { min-height: 12px; }
+.prog-wrap.reserved { min-height: 27px; }
+.ytv-wrong-btn.reserved { min-height: 25px; margin: 0; padding: 0; border: 0; background: none; }
+/* Nothing is reserved once the card is open — the blank rows would be dead space
+   under content the reader deliberately asked to see. */
+.card.open .reserved { display: none; }
+
 .card.open { overflow: visible; z-index: 2; }
 .card.open .title,
 .card.open .rating,
@@ -699,6 +711,9 @@ function renderCard(item, opts) {
         // Wrong same-name airing? Toggle suppression (persists to Notion, applies hub-wide on
         // rebuild + live here). Shown on cards that have an airing OR are already suppressed
         // (so you can restore). Reversible — "add it back for matching" per your ask.
+        const ytvWrongSlot = (opts.library && item.notion_id && onYtvPage
+                              && !(item.next_air || item.ignore_airings))
+            ? '<div class="ytv-wrong-btn reserved"></div>' : '';
         const ytvWrongBtn = (opts.library && item.notion_id && onYtvPage && (item.next_air || item.ignore_airings))
             ? `<button class="ytv-wrong-btn${item.ignore_airings ? ' is-ignored' : ''}" data-ignored="${item.ignore_airings ? '1' : '0'}" onclick="event.preventDefault();toggleIgnoreAiring('${item.notion_id}', this)">${item.ignore_airings ? '↩️ Restore airing' : '🚫 Wrong airing — hide it'}</button>`
             : '';
@@ -718,9 +733,22 @@ function renderCard(item, opts) {
         const trailerLink = item.trailer_key
             ? `<a class="trakt-link" href="#" onclick="event.preventDefault(); openTrailer('${item.trailer_key}', '${safeTitle}')">🎬 Watch Trailer</a>`
             : `<a class="trakt-link" href="${trailerUrl}" target="_blank">🎬 Watch Trailer ↗</a>`;
+        // A ROW THAT SOMETIMES ISN'T THERE MAKES THE CARD A DIFFERENT SIZE.
+        // These rows — next episode, next airing, progress, last watched, and the
+        // "wrong airing" button — are on roughly a quarter of cards each. A card
+        // without them is shorter, and since a grid row is only as tall as its
+        // tallest card, EVERY GROUP OF CARDS SETTLED ON ITS OWN HEIGHT: the Add to
+        // YouTube TV page has 29 collapsible groups and had 29 different card sizes,
+        // 931px to 1021px, each group internally perfect. The card had no size of its
+        // own — it took whatever its tallest neighbour needed.
+        //
+        // So each of these keeps its place whether or not it has anything to say. The
+        // card is then the same size in every group, on every page, and does not
+        // depend on what happens to be next to it. The empty ones are one line of
+        // nothing; the alternative is cards that change size as you scroll.
         const nextEpHtml = item.next_episode && item.next_episode.date && !item.release_date
             ? `<div class="next-ep">📺 Season ${item.next_episode.season} — ${item.next_episode.date}</div>`
-            : '';
+            : '<div class="next-ep reserved"></div>';
         // Soonest upcoming airing on my YouTube TV channels (from the guide) — e.g.
         // "📺 Starz Encore · Fri 8:00 PM". Tells you when a title is next on TV.
         const na = item.next_air;
@@ -728,7 +756,7 @@ function renderCard(item, opts) {
         // Suppressed (wrong same-name airing) → no airing line anywhere.
         const nextAirHtml = (na && na.channel && !item.ignore_airings)
             ? `<div class="next-ep next-air">📺 ${na.channel} · ${na.label} ${na.time}${naMore}</div>`
-            : '';
+            : '<div class="next-ep next-air reserved"></div>';
         // Upcoming premiere / finale tag (from The Futon Critic) — rides EVERY card hub-wide
         // via item.premiere_tag (premiere_tags.attach_premiere_tags), not just the Premieres
         // calendar. Colored corner badge with the label AND the date, e.g.
@@ -770,6 +798,8 @@ function renderCard(item, opts) {
                 progressHtml = `<div class="prog-wrap"><div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div><div class="prog-label">${p.watched || 0} / ${p.total} eps watched</div></div>`;
             } else if (p && p.watched) {
                 progressHtml = `<div class="ep-info">${p.watched} episodes watched</div>`;
+            } else {
+                progressHtml = '<div class="prog-wrap reserved"></div>';
             }
             // A SERVICE IS A LOGO IN THIS HUB — including in these two badges. They
             // named the service in WORDS while every other mention of a service on the
@@ -794,7 +824,9 @@ function renderCard(item, opts) {
                 ctxBadges += `<span class="age-badge ${tone}">${String(ag.text)
                     .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</span>`;
             }
-            if (item.last_watched) lastWatchedHtml = `<div class="last-seen">Last watched: ${item.last_watched}</div>`;
+            lastWatchedHtml = item.last_watched
+                ? `<div class="last-seen">Last watched: ${item.last_watched}</div>`
+                : '<div class="last-seen reserved"></div>';
         }
 
         return `<div class="card status-${item.status}" data-id="${item.trakt_id}" data-type="${item.type}">
@@ -822,7 +854,7 @@ function renderCard(item, opts) {
     ${ytvLink}
     ${ytvOpenBtn}
     ${ytvMarkBtn}
-    ${ytvWrongBtn}
+    ${ytvWrongBtn}${ytvWrongSlot}
     ${extLink}
     ${notionLink}
     ${fixIdBtn}
