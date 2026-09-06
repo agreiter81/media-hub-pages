@@ -1,0 +1,108 @@
+<!DOCTYPE html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Daily Report — Media Hub</title>
+<style>
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+       background: #0f0f1a; color: #e0e0e0; min-height: 100vh; }
+
+
+/* ── Shared Media Hub nav (hub_theme.py) ─────────────────────────────────── */
+.mh-nav { position: sticky; top: 0; z-index: 1000; width: 100%; box-sizing: border-box;
+          background: rgba(20,20,31,0.92); -webkit-backdrop-filter: blur(10px);
+          backdrop-filter: blur(10px); border-bottom: 1px solid #22223a;
+          display: flex; align-items: center; gap: 18px; padding: 11px 24px;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+.mh-nav .mh-brand { font-size: 1.02em; font-weight: 800; color: #fff; text-decoration: none;
+                    white-space: nowrap; letter-spacing: -0.01em; }
+.mh-nav .mh-links { display: flex; gap: 4px; flex-wrap: wrap; }
+.mh-nav a.mh-link { color: #9a9ab0; text-decoration: none; font-size: 0.83em; font-weight: 600;
+                    padding: 6px 12px; border-radius: 8px; transition: background .15s, color .15s; }
+.mh-nav a.mh-link:hover  { color: #fff; background: #22223a; }
+.mh-nav a.mh-link.active { color: #fff; background: #4a90e2; }
+@media (max-width: 640px) {
+  .mh-nav { gap: 10px; padding: 9px 14px; }
+  .mh-nav a.mh-link { padding: 5px 9px; font-size: 0.8em; }
+}
+/* ── Hub-wide search (in the nav, on every page) ──────────────────────────── */
+.mh-search-wrap { position: relative; margin-left: auto; }
+.mh-search { background: #2a2a3e; border: 1px solid #3a3a5e; color: #e0e0e0; font-size: 0.82em;
+             padding: 6px 12px; border-radius: 18px; width: 190px; outline: none; transition: width .15s, border-color .15s;
+             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+.mh-search:focus { width: 240px; border-color: #4a90e2; }
+.mh-search::placeholder { color: #777; }
+.mh-results { display: none; position: absolute; top: calc(100% + 6px); right: 0; width: 360px; max-width: 82vw;
+              max-height: 72vh; overflow-y: auto; background: #14141f; border: 1px solid #2a2a3e; border-radius: 12px;
+              box-shadow: 0 12px 40px rgba(0,0,0,0.6); z-index: 1001; padding: 6px; }
+.mh-result { display: flex; gap: 10px; align-items: center; padding: 7px 8px; border-radius: 8px; text-decoration: none; }
+.mh-result:hover { background: #20202f; }
+.mh-result img { width: 34px; height: 51px; border-radius: 4px; object-fit: cover; flex-shrink: 0; }
+.mh-result .mh-noimg { width: 34px; height: 51px; border-radius: 4px; background: #2a2a3e; display: flex;
+                       align-items: center; justify-content: center; font-size: 1.1em; flex-shrink: 0; }
+.mh-rinfo { min-width: 0; }
+.mh-rtitle { color: #fff; font-size: 0.84em; font-weight: 600; line-height: 1.25; }
+.mh-rtitle span { color: #777; font-weight: 400; }
+.mh-rsrc { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 3px; }
+.mh-src { font-size: 0.64em; font-weight: 700; color: #b9b9d0; background: #23233a; padding: 2px 6px; border-radius: 6px; }
+.mh-noresult { color: #777; font-size: 0.82em; padding: 16px; text-align: center; }
+@media (max-width: 640px) { .mh-search { width: 120px; } .mh-search:focus { width: 150px; } }
+/* ── Shared sub-tab strip (e.g. On TV: Guide / Episodes) ──────────────────── */
+.mh-subnav { display: flex; gap: 8px; flex-wrap: wrap; padding: 12px 24px 0;
+             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+.mh-subnav a { text-decoration: none; font-size: 0.82em; font-weight: 700; color: #9a9ab0;
+               background: #16162a; border: 1px solid #2a2a3e; padding: 7px 15px;
+               border-radius: 10px; transition: all .15s; }
+.mh-subnav a:hover { color: #fff; border-color: #4a90e2; }
+.mh-subnav a.active { color: #fff; background: #4a90e2; border-color: #4a90e2; }
+
+.wrap { max-width: 900px; margin: 0 auto; padding: 22px 32px 60px; }
+h1 { font-size: 1.4em; color: #fff; margin: 6px 0 2px; }
+.sub { color: #777; font-size: 0.85em; margin-bottom: 18px; }
+.verdict { padding: 14px 18px; border-radius: 10px; font-size: 1.02em; margin-bottom: 22px; }
+.verdict.ok { background: #16351f; color: #8fe0a4; }
+.verdict.warn { background: #3a2a12; color: #f0b95a; }
+h2 { font-size: 1.02em; color: #fff; margin: 26px 0 12px; }
+.facts { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px; }
+.fact { background: #16162a; border-radius: 10px; padding: 14px 16px; }
+.fact .n { font-size: 1.35em; font-weight: 700; color: #fff; }
+.fact .s { font-size: 0.86em; color: #bbb; margin-top: 3px; }
+.fact .c { font-size: 0.78em; color: #777; margin-top: 6px; }
+ul.issues { list-style: none; padding: 0; }
+ul.issues li { background: #1b1524; border-radius: 8px; padding: 9px 13px; margin-bottom: 7px;
+                font-size: 0.84em; color: #ddd; }
+ul.issues li span { color: #b9a; }
+.note { color: #666; font-size: 0.8em; margin-top: 30px; line-height: 1.6; }
+</style></head><body>
+<nav class="mh-nav"><a href="index.html" class="mh-brand">🎬 Media Hub</a><div class="mh-links"><a href="index.html" class="mh-link">Home</a><a href="trakt_discovery.html" class="mh-link">Discover</a><a href="watch_tonight.html" class="mh-link">Watch</a><a href="my_watchlist.html" class="mh-link">My Library</a></div><div class="mh-search-wrap"><input id="mh-search" class="mh-search" type="text" placeholder="Search the hub…  (Enter)" autocomplete="off" spellcheck="false"></div></nav><script>
+(function(){
+  var input = document.getElementById('mh-search');
+  if(!input) return;
+  function go(){ var q = input.value.trim(); window.location.href = 'search.html' + (q ? ('?q=' + encodeURIComponent(q)) : ''); }
+  input.addEventListener('keydown', function(e){ if(e.key==='Enter'){ e.preventDefault(); go(); } });
+})();
+</script>
+<script>
+window.hubPin = window.hubPin || function () {
+  var p = sessionStorage.getItem('hub_pin') || '';
+  if (!p) { p = prompt('Enter your PIN (remembered for this session):') || ''; if (p) sessionStorage.setItem('hub_pin', p); }
+  return p;
+};
+window.hubPinClear = window.hubPinClear || function () { sessionStorage.removeItem('hub_pin'); };
+</script>
+
+<div class="wrap">
+  <h1>Daily Report</h1>
+  <div class="sub">Last run: Saturday, September 5 at 5:01 PM · took 11 minutes</div>
+  <div class="verdict ok">✅ Every step finished.</div>
+  <h2>What it found</h2>
+  <div class="facts"><div class="fact"><div class="n">📚 2,591</div><div class="s">movies in your library</div><div class="c">about the same as yesterday</div></div><div class="fact"><div class="n">📺 1,194</div><div class="s">TV shows in your library</div><div class="c">about the same as yesterday</div></div><div class="fact"><div class="n">🔍 1,100</div><div class="s">titles to discover</div><div class="c">about the same as yesterday</div></div><div class="fact"><div class="n">🆕 49</div><div class="s">things arriving on your services</div><div class="c">about the same as yesterday</div></div><div class="fact"><div class="n">⏳ 151</div><div class="s">things leaving your services</div><div class="c">3 more than yesterday</div></div><div class="fact"><div class="n">🎬 346</div><div class="s">premieres and finales</div><div class="c">about the same as yesterday</div></div><div class="fact"><div class="n">📡 139,727</div><div class="s">TV listings in the guide</div><div class="c">about the same as yesterday</div></div><div class="fact"><div class="n">📰 228</div><div class="s">news stories</div><div class="c">about the same as yesterday</div></div><div class="fact"><div class="n">🔎 9,191</div><div class="s">titles you can search</div><div class="c">about the same as yesterday</div></div></div>
+  <h2>Worth a look</h2><div class="sub">Not about one title — about the run itself. A source that returned nothing, a service nobody publishes departures for.</div><ul class="issues"><li><b>library</b> — <span>no 'leaving soon' source for: MGM+ — these are on your list but neither the streaming API nor Vital Thrills publishes departures for them, so they contribute nothing below</span></li><li><b>library</b> — <span>CONTRIBUTED NOTHING: streaming API — the total below is missing whatever they cover</span></li><li><b>library</b> — <span>STREAMING API QUOTA USED UP for the month — every run until it resets gets nothing from this source. (You have exceeded the MONTHLY quota for API Request on your current plan, BASIC. Upgrade your</span></li></ul><h2>Titles it could not fill in</h2><div class="sub">Normal — these are titles the outside services have no artwork or details for. One line per kind, with how many times it came up.</div><ul class="issues"><li><b>391×</b> <span>TMDB has no poster/genres/actors for 'Cowgirls & Indians,' (ID 1763411, type=movie) — skipping</span></li><li><b>146×</b> <span>TMDB returned nothing for 'Turning Point: Generation 9/11' (ID 332013, type=tv) — wrong id, or a title TMDB does not have</span></li></ul>
+  <div class="note">
+    Every number here is something the run counted for itself and wrote down at the
+    time — nothing on this page is re-measured or estimated. A number that a run never
+    reported is left off rather than shown as zero, because "it didn't say" and "there
+    were none" are different answers.
+  </div>
+</div>
+</body></html>

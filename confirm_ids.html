@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Confirm IDs · Media Hub</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+       background: #0f0f1a; color: #e0e0e0; min-height: 100vh; }
+
+/* ── Shared Media Hub nav (hub_theme.py) ─────────────────────────────────── */
+.mh-nav { position: sticky; top: 0; z-index: 1000; width: 100%; box-sizing: border-box;
+          background: rgba(20,20,31,0.92); -webkit-backdrop-filter: blur(10px);
+          backdrop-filter: blur(10px); border-bottom: 1px solid #22223a;
+          display: flex; align-items: center; gap: 18px; padding: 11px 24px;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+.mh-nav .mh-brand { font-size: 1.02em; font-weight: 800; color: #fff; text-decoration: none;
+                    white-space: nowrap; letter-spacing: -0.01em; }
+.mh-nav .mh-links { display: flex; gap: 4px; flex-wrap: wrap; }
+.mh-nav a.mh-link { color: #9a9ab0; text-decoration: none; font-size: 0.83em; font-weight: 600;
+                    padding: 6px 12px; border-radius: 8px; transition: background .15s, color .15s; }
+.mh-nav a.mh-link:hover  { color: #fff; background: #22223a; }
+.mh-nav a.mh-link.active { color: #fff; background: #4a90e2; }
+@media (max-width: 640px) {
+  .mh-nav { gap: 10px; padding: 9px 14px; }
+  .mh-nav a.mh-link { padding: 5px 9px; font-size: 0.8em; }
+}
+/* ── Hub-wide search (in the nav, on every page) ──────────────────────────── */
+.mh-search-wrap { position: relative; margin-left: auto; }
+.mh-search { background: #2a2a3e; border: 1px solid #3a3a5e; color: #e0e0e0; font-size: 0.82em;
+             padding: 6px 12px; border-radius: 18px; width: 190px; outline: none; transition: width .15s, border-color .15s;
+             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+.mh-search:focus { width: 240px; border-color: #4a90e2; }
+.mh-search::placeholder { color: #777; }
+.mh-results { display: none; position: absolute; top: calc(100% + 6px); right: 0; width: 360px; max-width: 82vw;
+              max-height: 72vh; overflow-y: auto; background: #14141f; border: 1px solid #2a2a3e; border-radius: 12px;
+              box-shadow: 0 12px 40px rgba(0,0,0,0.6); z-index: 1001; padding: 6px; }
+.mh-result { display: flex; gap: 10px; align-items: center; padding: 7px 8px; border-radius: 8px; text-decoration: none; }
+.mh-result:hover { background: #20202f; }
+.mh-result img { width: 34px; height: 51px; border-radius: 4px; object-fit: cover; flex-shrink: 0; }
+.mh-result .mh-noimg { width: 34px; height: 51px; border-radius: 4px; background: #2a2a3e; display: flex;
+                       align-items: center; justify-content: center; font-size: 1.1em; flex-shrink: 0; }
+.mh-rinfo { min-width: 0; }
+.mh-rtitle { color: #fff; font-size: 0.84em; font-weight: 600; line-height: 1.25; }
+.mh-rtitle span { color: #777; font-weight: 400; }
+.mh-rsrc { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 3px; }
+.mh-src { font-size: 0.64em; font-weight: 700; color: #b9b9d0; background: #23233a; padding: 2px 6px; border-radius: 6px; }
+.mh-noresult { color: #777; font-size: 0.82em; padding: 16px; text-align: center; }
+@media (max-width: 640px) { .mh-search { width: 120px; } .mh-search:focus { width: 150px; } }
+/* ── Shared sub-tab strip (e.g. On TV: Guide / Episodes) ──────────────────── */
+.mh-subnav { display: flex; gap: 8px; flex-wrap: wrap; padding: 12px 24px 0;
+             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+.mh-subnav a { text-decoration: none; font-size: 0.82em; font-weight: 700; color: #9a9ab0;
+               background: #16162a; border: 1px solid #2a2a3e; padding: 7px 15px;
+               border-radius: 10px; transition: all .15s; }
+.mh-subnav a:hover { color: #fff; border-color: #4a90e2; }
+.mh-subnav a.active { color: #fff; background: #4a90e2; border-color: #4a90e2; }
+
+.idpick-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 3000;
+                  align-items: flex-start; justify-content: center; padding: 40px 16px; }
+.idpick-modal { background: #14141f; border: 1px solid #2a2a3e; border-radius: 14px; width: 460px;
+                max-width: 94vw; max-height: 82vh; overflow-y: auto; padding: 18px 18px 22px; position: relative; }
+.idpick-modal h3 { color: #fff; font-size: 1em; margin-bottom: 12px; padding-right: 24px; }
+.idpick-close { position: absolute; top: 10px; right: 12px; background: none; border: none; color: #888;
+                font-size: 1.5em; cursor: pointer; line-height: 1; }
+.idpick-close:hover { color: #fff; }
+.idpick-results { display: flex; flex-direction: column; gap: 6px; }
+.idpick-loading { color: #888; font-size: 0.85em; padding: 20px; text-align: center; }
+.idpick-item { display: flex; gap: 10px; align-items: center; text-align: left; width: 100%; background: #1c1c2b;
+               border: 1px solid transparent; border-radius: 10px; padding: 7px 9px; cursor: pointer; }
+.idpick-item:hover { border-color: #8e44ad; background: #20202f; }
+.idpick-item.picked { border-color: #4CAF50; }
+.idpick-item.idpick-none { border: 1px dashed #4a4a5e; }
+.idpick-item img { width: 40px; height: 60px; object-fit: cover; border-radius: 5px; flex-shrink: 0; }
+.idpick-noimg { width: 40px; height: 60px; border-radius: 5px; background: #2a2a3e; display: flex;
+                align-items: center; justify-content: center; font-size: 1.2em; flex-shrink: 0; }
+.idpick-meta { min-width: 0; }
+.idpick-title { color: #fff; font-size: 0.86em; font-weight: 600; }
+.idpick-title span { color: #888; font-weight: 400; }
+.idpick-sub { color: #9a9ab0; font-size: 0.74em; margin-top: 2px; }
+
+    .cf-hero{max-width:760px;margin:1.5rem auto .4rem;padding:0 1rem;text-align:center}
+    .cf-hero h1{font-size:1.5rem;margin:0 0 .4rem}
+    .cf-hero p{color:#9aa;font-size:.92rem;margin:0;line-height:1.5}
+    .cf-meta{max-width:760px;margin:.6rem auto;padding:0 1rem;color:#9aa;font-size:.82rem}
+    .cf-list{max-width:760px;margin:0 auto 3rem;padding:0 1rem;display:flex;flex-direction:column;gap:8px}
+    .cf-row{display:flex;align-items:center;gap:12px;background:#181a1f;border:1px solid #262a31;border-radius:10px;padding:11px 14px}
+    .cf-main{flex:1;min-width:0}
+    .cf-title{font-weight:600;font-size:1rem}
+    .cf-reason{color:#c78a2b;font-size:.78rem;margin-top:2px}
+    .cf-btn{background:#2a2f38;border:1px solid #3a4049;color:#e8e8e8;border-radius:8px;padding:7px 13px;font-size:.85rem;cursor:pointer;white-space:nowrap}
+    .cf-btn:hover{background:#3a4049}
+    .cf-empty{text-align:center;color:#8a8;padding:2.5rem 1rem;font-size:1.05rem}
+    </style>
+</head><body>
+<nav class="mh-nav"><a href="index.html" class="mh-brand">🎬 Media Hub</a><div class="mh-links"><a href="index.html" class="mh-link">Home</a><a href="trakt_discovery.html" class="mh-link">Discover</a><a href="watch_tonight.html" class="mh-link">Watch</a><a href="my_watchlist.html" class="mh-link">My Library</a></div><div class="mh-search-wrap"><input id="mh-search" class="mh-search" type="text" placeholder="Search the hub…  (Enter)" autocomplete="off" spellcheck="false"></div></nav><script>
+(function(){
+  var input = document.getElementById('mh-search');
+  if(!input) return;
+  function go(){ var q = input.value.trim(); window.location.href = 'search.html' + (q ? ('?q=' + encodeURIComponent(q)) : ''); }
+  input.addEventListener('keydown', function(e){ if(e.key==='Enter'){ e.preventDefault(); go(); } });
+})();
+</script>
+<script>
+window.hubPin = window.hubPin || function () {
+  var p = sessionStorage.getItem('hub_pin') || '';
+  if (!p) { p = prompt('Enter your PIN (remembered for this session):') || ''; if (p) sessionStorage.setItem('hub_pin', p); }
+  return p;
+};
+window.hubPinClear = window.hubPinClear || function () { sessionStorage.removeItem('hub_pin'); };
+</script>
+
+<div class="cf-hero"><h1>🔧 Confirm titles</h1><p>These couldn't be matched to a TMDB id automatically — a same-name tie or an odd title. Pick the right one and it's saved to your library for good.</p></div>
+<div class="cf-meta" id="cf-meta"></div>
+<div class="cf-list" id="cf-list"></div>
+<script>
+// ── Shared TMDB picker: search /api/search, render results, hand the choice back ──
+const PICKER_API = 'https://media-hub-api.agreiter81.workers.dev';
+function _idpickOverlay() {
+    let ov = document.getElementById('idpick-overlay');
+    if (ov) return ov;
+    ov = document.createElement('div');
+    ov.id = 'idpick-overlay';
+    ov.className = 'idpick-overlay';
+    ov.onclick = function(e) { if (e.target === ov) ov.style.display = 'none'; };
+    ov.innerHTML = '<div class="idpick-modal">' +
+        '<button class="idpick-close" onclick="document.getElementById(\'idpick-overlay\').style.display=\'none\'">&times;</button>' +
+        '<h3 id="idpick-h">Pick the correct title</h3>' +
+        '<div id="idpick-results" class="idpick-results"></div></div>';
+    document.body.appendChild(ov);
+    return ov;
+}
+// opts: { title, type ('movie'|'tv'), heading?, allowNone? (button label),
+//         onPick(result, el), onNone?(el) }
+async function openTmdbPicker(opts) {
+    const ov = _idpickOverlay();
+    ov.querySelector('#idpick-h').textContent = opts.heading || ('Pick the correct title for "' + opts.title + '"');
+    const box = ov.querySelector('#idpick-results');
+    box.innerHTML = '<div class="idpick-loading">Searching TMDB…</div>';
+    ov.style.display = 'flex';
+    window._idpickOnPick = opts.onPick || null;
+    window._idpickOnNone = opts.onNone || null;
+    try {
+        const r = await fetch(PICKER_API + '/api/search?q=' + encodeURIComponent(opts.title) +
+            '&type=' + (opts.type === 'movie' ? 'movie' : 'tv'));
+        const data = await r.json();
+        const results = data.results || [];
+        window._idpickResults = results;
+        let html = results.map(function(x, i) {
+            const poster = x.poster ? '<img src="' + x.poster + '" alt="">' : '<div class="idpick-noimg">🎬</div>';
+            return '<button class="idpick-item" onclick="_idpickChoose(' + i + ', this)">' + poster +
+                '<div class="idpick-meta"><div class="idpick-title">' + (x.title || '') +
+                (x.year ? ' <span>(' + x.year + ')</span>' : '') + '</div>' +
+                '<div class="idpick-sub">TMDB #' + x.id + (x.rating ? ' · ★ ' + x.rating : '') + '</div></div></button>';
+        }).join('');
+        if (!results.length) html = '<div class="idpick-loading">No TMDB matches found.</div>';
+        if (opts.allowNone) html += '<button class="idpick-item idpick-none" onclick="_idpickNone(this)">' +
+            '<div class="idpick-noimg">➕</div><div class="idpick-meta"><div class="idpick-title">' + opts.allowNone +
+            '</div><div class="idpick-sub">Save with no TMDB match (for pre-TMDB titles)</div></div></button>';
+        box.innerHTML = html;
+    } catch (e) {
+        box.innerHTML = '<div class="idpick-loading">Search failed. Try again.</div>';
+    }
+}
+function _idpickChoose(i, el) {
+    const res = (window._idpickResults || [])[i];
+    if (res && window._idpickOnPick) window._idpickOnPick(res, el);
+}
+function _idpickNone(el) { if (window._idpickOnNone) window._idpickOnNone(el); }
+function _idpickClose() { const ov = document.getElementById('idpick-overlay'); if (ov) ov.style.display = 'none'; }
+
+
+    const FLAGGED = [{"title": "The Perfect Date", "kind": "movie", "notion_id": "20b961bfacb4813e8e7bf282d00eef4d", "reason": "ambiguous-samename"}, {"title": "The Big Hit", "kind": "movie", "notion_id": "1b7961bfacb481899258d34974e316af", "reason": "ambiguous-samename"}, {"title": "Project K", "kind": "movie", "notion_id": "3bf961bfacb481738e2aead74bf99713", "reason": "no-exact-match"}, {"title": "Love Love", "kind": "movie", "notion_id": "3c4961bfacb481a9a20ddb1e5832d8e6", "reason": "no-exact-match"}, {"title": "Space Cadet", "kind": "movie", "notion_id": "1d7961bfacb481e2b1a5efb8a39cc09b", "reason": "ambiguous-samename"}, {"title": "Damsel", "kind": "movie", "notion_id": "1c9961bfacb4812497dbfc7eacf38aee", "reason": "ambiguous-samename"}, {"title": "G.I. Joe,", "kind": "movie", "notion_id": "3b2961bfacb481b490b5c4c89ac90335", "reason": "no-exact-match"}, {"title": "Undiscovered", "kind": "movie", "notion_id": "1b7961bfacb48198bca6d0aceefc5ea1", "reason": "ambiguous-samename"}, {"title": "Shadowboxer", "kind": "movie", "notion_id": "1b7961bfacb481e69f46f56b7ba363dc", "reason": "ambiguous-samename"}, {"title": "The Joneses", "kind": "movie", "notion_id": "1b7961bfacb481bba729eff0f597dc7e", "reason": "ambiguous-samename"}, {"title": "The Family Tree", "kind": "movie", "notion_id": "1b7961bfacb481f3aa92f2add27317f3", "reason": "ambiguous-samename"}, {"title": "Creation", "kind": "movie", "notion_id": "1b7961bfacb481f8b528dd764ca51a34", "reason": "ambiguous-samename"}, {"title": "Ondine", "kind": "movie", "notion_id": "1b7961bfacb4813abb68fb0365acb628", "reason": "ambiguous-samename"}, {"title": "Cloud 9", "kind": "movie", "notion_id": "1b7961bfacb481859789f76b70126afe", "reason": "ambiguous-samename"}, {"title": "Shrink", "kind": "movie", "notion_id": "1b7961bfacb481cea29ae9ce9eab5292", "reason": "ambiguous-samename"}, {"title": "The Kitchen", "kind": "movie", "notion_id": "1b7961bfacb481308185d3d2a7536534", "reason": "ambiguous-samename"}, {"title": "Little Monsters", "kind": "movie", "notion_id": "1b7961bfacb481a59b05edb462d0dfd1", "reason": "ambiguous-samename"}, {"title": "Diggers", "kind": "movie", "notion_id": "1b7961bfacb48195998ed602a7943912", "reason": "ambiguous-samename"}, {"title": "Man Up", "kind": "movie", "notion_id": "1b7961bfacb481638c75fd5f5a475da1", "reason": "ambiguous-samename"}, {"title": "The Vault", "kind": "movie", "notion_id": "1b7961bfacb48149b06af70c732af41d", "reason": "ambiguous-samename"}, {"title": "Hustle", "kind": "movie", "notion_id": "1b7961bfacb4816a9fd2da552cca5c4c", "reason": "ambiguous-samename"}, {"title": "A Christmas Mystery", "kind": "movie", "notion_id": "1b7961bfacb481f7948ec8ccd915ca9a", "reason": "ambiguous-samename"}, {"title": "The Amateurs", "kind": "movie", "notion_id": "1b7961bfacb481899b11cc88a0ca8f4d", "reason": "ambiguous-samename"}, {"title": "The Baker", "kind": "movie", "notion_id": "1b7961bfacb48139bfe2f575f596a6de", "reason": "ambiguous-samename"}, {"title": "Paint", "kind": "movie", "notion_id": "1b7961bfacb481c3849de09e55fb8acf", "reason": "ambiguous-samename"}, {"title": "The Package", "kind": "movie", "notion_id": "1b7961bfacb48178aef3d404f47a9dca", "reason": "ambiguous-samename"}, {"title": "Where Do We Go from Here?", "kind": "movie", "notion_id": "1b7961bfacb48175a354c3bb41fef8b7", "reason": "ambiguous-samename"}, {"title": "Wanted Man", "kind": "movie", "notion_id": "1b7961bfacb481f98bc0f773247dbee8", "reason": "ambiguous-samename"}, {"title": "You People", "kind": "movie", "notion_id": "1b7961bfacb481d189ecc33de9f9d5e8", "reason": "ambiguous-samename"}, {"title": "Thelma", "kind": "movie", "notion_id": "1b7961bfacb4816ab30dd8306a16c00c", "reason": "ambiguous-samename"}, {"title": "Lift", "kind": "movie", "notion_id": "1b7961bfacb481fcbf65c7bc92ffcf15", "reason": "ambiguous-samename"}, {"title": "The Sleepover", "kind": "movie", "notion_id": "1b7961bfacb48166b6d4cd3039c02fd9", "reason": "ambiguous-samename"}, {"title": "Inheritance", "kind": "movie", "notion_id": "1b7961bfacb4816bba34c47363454308", "reason": "ambiguous-samename"}, {"title": "Desperados", "kind": "movie", "notion_id": "1b7961bfacb481d3bbc9ef659c56e85d", "reason": "ambiguous-samename"}, {"title": "Howl", "kind": "movie", "notion_id": "1b7961bfacb4818fb094c93cfb9c73c2", "reason": "ambiguous-samename"}, {"title": "Family Pack", "kind": "movie", "notion_id": "1b7961bfacb481799104cf64d9e3d321", "reason": "ambiguous-samename"}, {"title": "The Yellow Handkerchief", "kind": "movie", "notion_id": "1b7961bfacb481aa818ced0e3e05f5c3", "reason": "ambiguous-samename"}, {"title": "Like Father", "kind": "movie", "notion_id": "1b7961bfacb4818886f8c1ab1659ea53", "reason": "ambiguous-samename"}, {"title": "I Believe in Santa", "kind": "movie", "notion_id": "1b7961bfacb481f99c3ce2e435fc7ea7", "reason": "ambiguous-samename"}, {"title": "Junior", "kind": "movie", "notion_id": "1b7961bfacb481f0a725d7c8221d788c", "reason": "ambiguous-samename"}, {"title": "Midas", "kind": "movie", "notion_id": "1b7961bfacb481ac8320f600a919e827", "reason": "ambiguous-samename"}, {"title": "The Running Man", "kind": "movie", "notion_id": "1b7961bfacb481e8b0a2c9af67bbb3ec", "reason": "ambiguous-samename"}, {"title": "Picture This", "kind": "movie", "notion_id": "1b7961bfacb48144acd9fd01d09fa022", "reason": "ambiguous-samename"}, {"title": "Sleepover", "kind": "movie", "notion_id": "1b7961bfacb48170a6edf7b131a65d67", "reason": "ambiguous-samename"}, {"title": "Sisters", "kind": "movie", "notion_id": "1b7961bfacb481a994e9c7cce2831ce7", "reason": "ambiguous-samename"}, {"title": "A Little Bit of Heaven", "kind": "movie", "notion_id": "1b7961bfacb48192b402d40ec46a9f49", "reason": "ambiguous-samename"}, {"title": "A Second Chance", "kind": "movie", "notion_id": "1b7961bfacb48132ad25e61f29ac0e8c", "reason": "ambiguous-samename"}, {"title": "Chaos Theory", "kind": "movie", "notion_id": "1b7961bfacb481579520fb73656e2512", "reason": "ambiguous-samename"}, {"title": "Feds", "kind": "movie", "notion_id": "1b7961bfacb4819ab196cdf7ae26077a", "reason": "ambiguous-samename"}, {"title": "365 Days", "kind": "movie", "notion_id": "1b7961bfacb481ce9e19d26eaf1c1d3c", "reason": "saved id is '365 Days: This Day'"}, {"title": "Barbie 2", "kind": "movie", "notion_id": "3b4961bfacb481f7a9bbc44b72bf1c87", "reason": "saved id is 'Untitled Barbie Sequel'"}, {"title": "Boot Camp", "kind": "movie", "notion_id": "35f961bfacb4811ea50cd69bfec93003", "reason": "saved id is 'Un été pour tout changer'"}, {"title": "comboio noturno", "kind": "movie", "notion_id": "1b8961bfacb481978126c800ec60129c", "reason": "saved id is 'Night Train'"}, {"title": "Coven of Sisters", "kind": "movie", "notion_id": "1b7961bfacb48198bd38df017bcb8fba", "reason": "saved id is 'Coven'"}, {"title": "Dr. Seuss' The Lorax", "kind": "movie", "notion_id": "1b7961bfacb481a4b626f144e82f2dcd", "reason": "saved id is 'The Lorax'"}, {"title": "Fantastic Four", "kind": "movie", "notion_id": "351961bfacb481178682c60e3e82474c", "reason": "saved id is 'The Fantastic 4: First Steps'"}, {"title": "Gabriel lglesias: I’m Sorry For What I Said When I Was Hungry", "kind": "movie", "notion_id": "1b7961bfacb4812090d4eb16b1923170", "reason": "saved id is 'Gabriel Iglesias: I'm Sorry for What I Said When I Was Hungry'"}, {"title": "Guardians of the Galaxy Volume 3", "kind": "movie", "notion_id": "1b7961bfacb481518cbac7c10b31de7f", "reason": "saved id is 'Guardians of the Galaxy Vol. 3'"}, {"title": "High-Rise", "kind": "movie", "notion_id": "1b7961bfacb48101a9b2f1a3fa11b9f8", "reason": "saved id is 'Rising High'"}, {"title": "How To Lose A Guy In 10 Days", "kind": "movie", "notion_id": "3c7961bfacb48131acbaeeeb767360f2", "reason": "saved id is 'How to Lose a Guy in 10 Days Sequel'"}, {"title": "Jeff Foxworthy and Larry the Cable Guy: We’ve Been Thinking...", "kind": "movie", "notion_id": "1b7961bfacb4816b8aa5ef6c6c5e2624", "reason": "saved id is 'Jeff Foxworthy & Larry the Cable Guy: We've Been Thinking'"}, {"title": "John Wick: Chapter 5", "kind": "movie", "notion_id": "222961bfacb481c09293e4f550537072", "reason": "saved id is 'Picking Oranges'"}, {"title": "Matchbox", "kind": "movie", "notion_id": "39c961bfacb481f6b038dbe9d319fb78", "reason": "saved id is 'Matchbox: The Movie'"}, {"title": "Miami Vice", "kind": "movie", "notion_id": "3c4961bfacb48185ae97ff7d22a84a06", "reason": "saved id is 'Miami Vice '85'"}, {"title": "mob humor", "kind": "movie", "notion_id": "1b8961bfacb481f9a743d2a0c13f34aa", "reason": "saved id is 'Mob Humor 2022'"}, {"title": "napoleon", "kind": "movie", "notion_id": "1b8961bfacb4815287f9f5a31c53a158", "reason": "saved id is 'Bashlachev. The Flight of Death'"}, {"title": "Now You See Me 4", "kind": "movie", "notion_id": "222961bfacb48181ae0cdda3f61d0be5", "reason": "saved id is 'So You Think You Can Squirt 4'"}, {"title": "ocean boy", "kind": "movie", "notion_id": "1b8961bfacb48135be99e7470960aa27", "reason": "saved id is 'The Boy in the Ocean'"}, {"title": "Out of my league", "kind": "movie", "notion_id": "1b7961bfacb481b9aa9ef59273a89601", "reason": "saved id is 'Forever Out of My League'"}, {"title": "Romy And Michele", "kind": "movie", "notion_id": "3b3961bfacb48121b45ed7f27f607b75", "reason": "saved id is 'Romy and Michele 2'"}, {"title": "Secret Society of Second Born Royals", "kind": "movie", "notion_id": "1b7961bfacb481788ff3e1678a24a668", "reason": "saved id is 'Secret Society of Second-Born Royals'"}, {"title": "Something Beautiful", "kind": "movie", "notion_id": "1f4961bfacb4819d8305e43f8f9ac8bb", "reason": "saved id is 'Miley Cyrus: Something Beautiful'"}, {"title": "The 40 Year Old Virgin", "kind": "movie", "notion_id": "344961bfacb481dbb020d907a412ee8e", "reason": "saved id is 'The 40 Year-Old Virgin'"}, {"title": "The 51st AFI Life Achievement Award: A Tribute to Eddie Murphy", "kind": "movie", "notion_id": "360961bfacb481ff8145f357439cc13a", "reason": "saved id is 'AFI Life Achievement Award: A Tribute to Eddie Murphy'"}, {"title": "The Return", "kind": "movie", "notion_id": "1cc961bfacb48159ad5bd70303a4bc79", "reason": "saved id is 'Kingdom: Return of the Great General'"}, {"title": "The Toxic Avenger", "kind": "movie", "notion_id": "243961bfacb48173a45dd48710f0dca7", "reason": "saved id is 'The Toxic Avenger Unrated'"}, {"title": "The Woods", "kind": "movie", "notion_id": "1b7961bfacb481c5923fc746fc3af70a", "reason": "saved id is 'Stranger in the Woods'"}, {"title": "Tyler Perry's I Can Do Bad All by Myself", "kind": "movie", "notion_id": "1b7961bfacb481db8ec6cf179a9c1530", "reason": "saved id is 'Tyler Perry's I Can Do Bad All By Myself - The Play'"}, {"title": "what rhymes with reason", "kind": "movie", "notion_id": "1b8961bfacb48102a786fe14e6b33d18", "reason": "saved id is 'Better Together'"}, {"title": "X-Men", "kind": "movie", "notion_id": "3af961bfacb4811fa3b3d6f354bccf05", "reason": "saved id is 'Untitled X-Men Film'"}, {"title": "Life, Larry and the Pursuit of Unhappiness", "kind": "tv", "notion_id": "335961bfacb481d09850ee2434cb348f", "reason": "saved id is 'Life, Larry and the Pursuit of Unhappiness: An Almost History of America'"}, {"title": "Married at first sight", "kind": "tv", "notion_id": "1c3961bfacb4818382e1ec483dbbf479", "reason": "saved id is 'Házasság első látásra'"}];
+    const REASONS = {
+      'ambiguous-samename':'Several titles share this exact name — pick yours',
+      'no-exact-match':'No exact name match — pick the right one',
+      'no-results':'Not found on TMDB — the title may need fixing'
+    };
+    function esc(s){return (s||'').replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+    function render(){
+      const rem = FLAGGED.filter(function(f){return !f._done;});
+      document.getElementById('cf-meta').textContent = rem.length + ' of ' + FLAGGED.length + ' still need a pick';
+      const list = document.getElementById('cf-list');
+      if(!rem.length){ list.innerHTML = '<p class="cf-empty">Nothing to confirm — every title is resolved.</p>'; return; }
+      list.innerHTML = rem.map(function(f){
+        const idx = FLAGGED.indexOf(f);
+        return '<div class="cf-row" data-i="'+idx+'"><div class="cf-main"><div class="cf-title">'+esc(f.title)+'</div><div class="cf-reason">'+(REASONS[f.reason]||f.reason)+'</div></div>'
+          + '<button class="cf-btn" data-nid="'+f.notion_id+'" data-title="'+esc(f.title)+'" data-type="'+f.kind+'" onclick="openIdPicker(this)">Pick the right title</button></div>';
+      }).join('');
+    }
+    function openIdPicker(btn){
+      const nid = btn.dataset.nid, idx = parseInt(btn.closest('.cf-row').dataset.i,10);
+      openTmdbPicker({ title: btn.dataset.title, type: btn.dataset.type,
+        onPick: function(res, el){ setShowId(nid, res.id, el, idx); } });
+    }
+    async function setShowId(nid, tmdbId, el, idx){
+      const pin = hubPin();
+      if(!pin) return;
+      const sub = el.querySelector('.idpick-sub');
+      if(sub) sub.textContent = 'Saving…';
+      try{
+        const r = await fetch('https://media-hub-api.agreiter81.workers.dev/api/set-show-id', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ notion_page_id: nid, tmdb_id: tmdbId, pin: pin })
+        });
+        if(r.status===401){ if(sub) sub.textContent='Wrong PIN'; return; }
+        if(!r.ok){ if(sub) sub.textContent='Failed'; return; }
+        el.classList.add('picked');
+        if(sub) sub.textContent='✓ Set';
+        FLAGGED[idx]._done = true;
+        setTimeout(function(){ const ov=document.getElementById('idpick-overlay'); if(ov) ov.style.display='none'; render(); }, 900);
+      }catch(e){ if(sub) sub.textContent='Failed'; }
+    }
+    render();
+    </script>
+</body></html>

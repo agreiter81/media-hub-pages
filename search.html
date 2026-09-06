@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Search · Media Hub</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+       background: #0f0f1a; color: #e0e0e0; min-height: 100vh; }
+
+/* ── Shared Media Hub nav (hub_theme.py) ─────────────────────────────────── */
+.mh-nav { position: sticky; top: 0; z-index: 1000; width: 100%; box-sizing: border-box;
+          background: rgba(20,20,31,0.92); -webkit-backdrop-filter: blur(10px);
+          backdrop-filter: blur(10px); border-bottom: 1px solid #22223a;
+          display: flex; align-items: center; gap: 18px; padding: 11px 24px;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+.mh-nav .mh-brand { font-size: 1.02em; font-weight: 800; color: #fff; text-decoration: none;
+                    white-space: nowrap; letter-spacing: -0.01em; }
+.mh-nav .mh-links { display: flex; gap: 4px; flex-wrap: wrap; }
+.mh-nav a.mh-link { color: #9a9ab0; text-decoration: none; font-size: 0.83em; font-weight: 600;
+                    padding: 6px 12px; border-radius: 8px; transition: background .15s, color .15s; }
+.mh-nav a.mh-link:hover  { color: #fff; background: #22223a; }
+.mh-nav a.mh-link.active { color: #fff; background: #4a90e2; }
+@media (max-width: 640px) {
+  .mh-nav { gap: 10px; padding: 9px 14px; }
+  .mh-nav a.mh-link { padding: 5px 9px; font-size: 0.8em; }
+}
+/* ── Hub-wide search (in the nav, on every page) ──────────────────────────── */
+.mh-search-wrap { position: relative; margin-left: auto; }
+.mh-search { background: #2a2a3e; border: 1px solid #3a3a5e; color: #e0e0e0; font-size: 0.82em;
+             padding: 6px 12px; border-radius: 18px; width: 190px; outline: none; transition: width .15s, border-color .15s;
+             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+.mh-search:focus { width: 240px; border-color: #4a90e2; }
+.mh-search::placeholder { color: #777; }
+.mh-results { display: none; position: absolute; top: calc(100% + 6px); right: 0; width: 360px; max-width: 82vw;
+              max-height: 72vh; overflow-y: auto; background: #14141f; border: 1px solid #2a2a3e; border-radius: 12px;
+              box-shadow: 0 12px 40px rgba(0,0,0,0.6); z-index: 1001; padding: 6px; }
+.mh-result { display: flex; gap: 10px; align-items: center; padding: 7px 8px; border-radius: 8px; text-decoration: none; }
+.mh-result:hover { background: #20202f; }
+.mh-result img { width: 34px; height: 51px; border-radius: 4px; object-fit: cover; flex-shrink: 0; }
+.mh-result .mh-noimg { width: 34px; height: 51px; border-radius: 4px; background: #2a2a3e; display: flex;
+                       align-items: center; justify-content: center; font-size: 1.1em; flex-shrink: 0; }
+.mh-rinfo { min-width: 0; }
+.mh-rtitle { color: #fff; font-size: 0.84em; font-weight: 600; line-height: 1.25; }
+.mh-rtitle span { color: #777; font-weight: 400; }
+.mh-rsrc { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 3px; }
+.mh-src { font-size: 0.64em; font-weight: 700; color: #b9b9d0; background: #23233a; padding: 2px 6px; border-radius: 6px; }
+.mh-noresult { color: #777; font-size: 0.82em; padding: 16px; text-align: center; }
+@media (max-width: 640px) { .mh-search { width: 120px; } .mh-search:focus { width: 150px; } }
+/* ── Shared sub-tab strip (e.g. On TV: Guide / Episodes) ──────────────────── */
+.mh-subnav { display: flex; gap: 8px; flex-wrap: wrap; padding: 12px 24px 0;
+             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+.mh-subnav a { text-decoration: none; font-size: 0.82em; font-weight: 700; color: #9a9ab0;
+               background: #16162a; border: 1px solid #2a2a3e; padding: 7px 15px;
+               border-radius: 10px; transition: all .15s; }
+.mh-subnav a:hover { color: #fff; border-color: #4a90e2; }
+.mh-subnav a.active { color: #fff; background: #4a90e2; border-color: #4a90e2; }
+
+/* grid-auto-rows: 1fr — every ROW the same height, so a card is the same size
+   wherever it appears. On its own this would stretch every card to match the single
+   tallest one; it is safe because the caps above bound how tall that can be. */
+.grid { display: grid; grid-auto-rows: 1fr;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 14px; padding: 16px 20px; }
+.card { background: #1e1e30; border-radius: 10px; overflow: hidden;
+        transition: transform 0.15s, box-shadow 0.15s; display: flex; flex-direction: column; }
+.card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.4); }
+/* Watched titles are NOT dimmed anywhere in the hub (user preference). */
+.card.status-watched { opacity: 1; }
+.card.status-watchlist { box-shadow: 0 0 0 2px #f5c518; }
+.poster { position: relative; aspect-ratio: 2/3; background: #2a2a3e; overflow: hidden; }
+.poster img { width: 100%; height: 100%; object-fit: cover; }
+.poster .no-poster { display: flex; align-items: center; justify-content: center;
+                     height: 100%; font-size: 3em; color: #3a3a5e; }
+/* right:6px + wrapping so a long badge ("🆕 Season 2 Premiere · Sep 12") stays inside
+   a 200px card instead of running off the poster. This lived as a home-page-only
+   override, which meant the SAME card clipped its badges on every other page. */
+.cat-badges { position: absolute; top: 6px; left: 6px; right: 6px; display: flex;
+              flex-direction: column; align-items: flex-start; gap: 3px; }
+.cat-badge { font-size: 0.62em; font-weight: bold; padding: 2px 6px; border-radius: 8px;
+             backdrop-filter: blur(4px); white-space: normal; line-height: 1.25;
+             max-width: 100%; }
+.cat-badge.trending   { background: rgba(231,76,60,0.85); color: white; }
+.cat-badge.anticipated { background: rgba(155,89,182,0.85); color: white; }
+.cat-badge.popular    { background: rgba(39,174,96,0.85); color: white; }
+.cat-badge.watched-cat { background: rgba(52,152,219,0.85); color: white; }
+.cat-badge.recommendations { background: rgba(230,126,34,0.85); color: white; }
+.cat-badge.new-badge { background: rgba(255,165,0,0.9); color: white; }
+.cat-badge.leaving { background: rgba(230,126,34,0.9); color: white; }
+.cat-badge.leaving.urgent { background: rgba(231,76,60,0.92); color: white; }
+/* THE BADGE TONES. Every badge a page can ask for is styled HERE, once.
+   Pages used to paste raw HTML into the card with their own inline colours, so the
+   same idea — "the service", "when it airs", "why this is here" — was a different
+   colour depending which page you were on. A page now names the MEANING and the
+   card owns the look. */
+.cat-badge.tone-pick     { background: rgba(243,156,18,0.92); color: #fff; }
+.cat-badge.tone-when     { background: rgba(44,62,80,0.92);   color: #cfe3ff; }
+.cat-badge.tone-service  { background: rgba(45,90,45,0.92);   color: #fff; }
+.cat-badge.tone-owned    { background: rgba(245,197,24,0.94); color: #111; }
+.cat-badge.tone-why      { background: rgba(192,57,43,0.92);  color: #fff; }
+.cat-badge.tone-match    { background: rgba(76,175,80,0.92);  color: #fff; }
+/* Where a search result came from — a colour-coded set, kept as one set. */
+.cat-badge.tone-library  { background: rgba(58,58,94,0.92);   color: #fff; }
+.cat-badge.tone-discover { background: rgba(74,144,226,0.92); color: #fff; }
+.cat-badge.tone-arriving { background: rgba(45,90,45,0.92);   color: #fff; }
+.cat-badge.tone-leaving  { background: rgba(138,75,30,0.92);  color: #fff; }
+.cat-badge.tone-premiere { background: rgba(107,63,160,0.92); color: #fff; }
+.cat-badge.tone-ontv     { background: rgba(31,58,95,0.92);   color: #cfe3ff; }
+.cat-badge.premiere-tag.is-premiere { background: rgba(46,125,70,0.92); color: white; }
+.cat-badge.premiere-tag.is-finale { background: rgba(179,64,47,0.92); color: white; }
+.type-badge { position: absolute; top: 6px; right: 6px; font-size: 1em;
+              background: rgba(0,0,0,0.6); border-radius: 6px; padding: 2px 5px; }
+.info { padding: 10px; flex: 1; display: flex; flex-direction: column; gap: 5px; }
+
+/* EVERY BLOCK ABOVE THE DESCRIPTION IS CAPPED, so a card's chrome is a constant
+   height and the description absorbs whatever is left. Without these caps each block
+   grew to fit its own content — a 5-line title here, four rows of service logos
+   there — and on a 375px phone that put a 312px spread across 3,785 cards: 502px
+   tall at the shortest, 814px at the tallest. Cards in the SAME ROW always matched
+   (the grid stretches them); it was row against row that never did, which is what
+   you see scrolling. Caps first, then grid-auto-rows below equalises what's left. */
+.title { font-weight: 700; font-size: 0.88em; line-height: 1.3; color: #fff;
+         display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
+         overflow: hidden; min-height: 2.6em; }
+.title .year { font-weight: 400; color: #888; font-size: 0.85em; margin-left: 4px; }
+/* Stars, certificate, runtime, release date, venue and leaving badges all live on
+   this one line and wrapped to three on a narrow card. */
+.rating { font-size: 0.75em; color: #f5c518; line-height: 1.5; min-height: 1.5em;
+          max-height: 3em; overflow: hidden; }
+.rating .votes { color: #666; }
+.genres { display: flex; flex-wrap: wrap; gap: 3px; min-height: 20px; max-height: 20px;
+          overflow: hidden; }
+.genre { font-size: 0.65em; background: #2a2a3e; color: #aaa; padding: 2px 6px;
+         border-radius: 8px; }
+.providers { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 2px;
+             min-height: 24px; max-height: 24px; overflow: hidden; }
+/* The cast row. This was never in the shared card at all — My Library and Discovery
+   each defined `.actors` for themselves, with their own font sizes inside their own
+   media queries, and the check for pages restyling the card did not know the class
+   existed. Four chips stack four rows deep on a phone, which was the single biggest
+   source of the height difference between one row of cards and the next. */
+.actors { font-size: 0.7em; color: #888; line-height: 1.3; display: flex;
+          flex-wrap: wrap; gap: 3px; min-height: 52px; max-height: 52px;
+          overflow: hidden; }
+.actor-chip { cursor: pointer; transition: color 0.15s; display: inline-flex;
+              align-items: center; gap: 3px; }
+.actor-chip:hover { color: #4a90e2; text-decoration: underline; }
+.actor-chip img { width: 18px; height: 18px; border-radius: 50%; object-fit: cover; }
+.actor-chip.active-actor { color: #4a90e2; font-weight: 700; }
+.providers img { width: 24px; height: 24px; border-radius: 4px; object-fit: cover; }
+.prov-text { font-size: 0.6em; background: #2a2a3e; color: #aaa; padding: 2px 6px;
+             border-radius: 4px; white-space: nowrap; }
+/* Description: clamp to 3 lines (no fiddly inner scroll), tap/click to expand to full. */
+.overview { font-size: 0.73em; color: #999; line-height: 1.4; flex: 1; cursor: pointer;
+            display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3;
+            overflow: hidden; }
+.overview.expanded { -webkit-line-clamp: unset; overflow: visible; }
+
+/* TAP A CARD TO OPEN IT OUT. Every cap above exists so cards line up in the grid,
+   which means a long title, a fifth cast member or a fourth row of logos is trimmed.
+   Nothing is lost — one tap lifts every cap on that card at once and it grows to fit,
+   pushing its row down. Tap again to close. Same idea as tapping the description,
+   extended to the whole card, so there is one gesture rather than two.
+   `.card` sets overflow:hidden for its rounded corners, so the open state has to
+   release that too or the extra content is clipped by the card itself. */
+.card.open { overflow: visible; z-index: 2; }
+.card.open .title,
+.card.open .rating,
+.card.open .genres,
+.card.open .actors,
+.card.open .providers { -webkit-line-clamp: unset; max-height: none; overflow: visible; }
+.card.open .overview { -webkit-line-clamp: unset; overflow: visible; }
+.card-expand { align-self: flex-start; background: none; border: 0; cursor: pointer;
+               color: #4a90e2; font-size: 0.68em; font-weight: 600; padding: 2px 0 0;
+               font-family: inherit; }
+.card-expand:hover { text-decoration: underline; }
+.add-btn { margin-top: 8px; padding: 6px 10px; border: none; border-radius: 8px;
+           cursor: pointer; font-size: 0.75em; font-weight: 600; width: 100%;
+           transition: all 0.15s; }
+.add-btn.none      { background: #4a90e2; color: white; }
+.add-btn.none:hover { background: #357abd; }
+.add-btn.watchlist { background: #2a4a2e; color: #4CAF50; cursor: default; }
+.add-btn.watched   { background: #2a2a3e; color: #666; cursor: default; }
+.add-btn.added     { background: #1a4a1e; color: #4CAF50; cursor: default; }
+.add-btn.loading   { background: #3a3a5e; color: #aaa; cursor: default; }
+.add-btn.error     { background: #4a1a1e; color: #e74c3c; cursor: pointer; }
+.watched-btn { background: #8e44ad !important; }
+.watched-btn:hover { background: #9b59b6 !important; }
+.not-interested-btn { background: #3a2a2a !important; color: #888 !important; }
+.not-interested-btn:hover { background: #4a2a2a !important; color: #aaa !important; }
+.show-hidden-btn { background: none; border: 1px solid #555; color: #888; padding: 4px 12px;
+                   border-radius: 16px; cursor: pointer; font-size: 0.75em; margin-left: 8px; }
+.show-hidden-btn:hover { border-color: #888; color: #bbb; }
+.show-hidden-btn.active { border-color: #e74c3c; color: #e74c3c; }
+.reset-btn { background: #e74c3c; border: none; color: #fff; padding: 6px 14px;
+             border-radius: 20px; cursor: pointer; font-size: 0.82em; font-weight: 600;
+             transition: transform 0.15s; animation: reset-pulse 1.5s ease-in-out infinite; }
+.reset-btn:hover { transform: scale(1.05); background: #c0392b; }
+@keyframes reset-pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(231,76,60,0.4); } 50% { box-shadow: 0 0 8px 3px rgba(231,76,60,0.3); } }
+.trakt-link { font-size: 0.68em; color: #555; text-align: center; text-decoration: none;
+              margin-top: 3px; display: block; }
+.trakt-link:hover { color: #888; }
+/* Library (Layer 2): TV progress bar, last-watched, coming/leaving context badges */
+.prog-wrap { margin-top: 3px; }
+.prog-bar { height: 5px; background: #2a2a3e; border-radius: 3px; overflow: hidden; }
+.prog-fill { height: 100%; background: #4CAF50; border-radius: 3px; }
+.prog-label { font-size: 0.62em; color: #888; margin-top: 2px; }
+.ep-info { font-size: 0.66em; color: #888; margin-top: 3px; }
+.last-seen { font-size: 0.62em; color: #666; margin-top: 2px; }
+/* How long a title has sat on the list — four steps, cool to hot. The Library used
+   to build this as raw HTML in the browser and pick these four colours itself,
+   through an item.extra_html hatch: the same hole as top_badges_html, still open
+   after that one was closed. */
+/* Where it premieres: in a cinema, on a service, or on a channel. */
+.venue-badge { display: inline-block; padding: 1px 6px; border-radius: 8px; font-size: 10px;
+               font-weight: 600; color: #fff; margin-left: 4px; background: rgba(33,150,243,0.92); }
+.venue-badge.theater   { background: rgba(231,76,60,0.92); }
+.venue-badge.streaming { background: rgba(39,174,96,0.92); }
+.age-badge { display: inline-block; font-size: 0.62em; font-weight: 600; padding: 1px 6px;
+             border-radius: 8px; }
+.age-badge.fresh  { background: rgba(39,174,96,0.13);  color: #27ae60; border: 1px solid #27ae60; }
+.age-badge.months { background: rgba(241,196,15,0.13); color: #f1c40f; border: 1px solid #f1c40f; }
+.age-badge.years  { background: rgba(230,126,34,0.13); color: #e67e22; border: 1px solid #e67e22; }
+.age-badge.stale  { background: rgba(231,76,60,0.13);  color: #e74c3c; border: 1px solid #e74c3c; }
+.leave-badge { display: inline-block; padding: 1px 6px; border-radius: 8px; font-size: 10px;
+               font-weight: 700; color: #fff; background: rgba(230,126,34,0.92); margin-left: 4px; }
+.leave-badge.urgent { background: rgba(231,76,60,0.94); }
+.svc-icon { width: 14px; height: 14px; border-radius: 3px; object-fit: cover;
+            vertical-align: -2px; margin: 0 3px 0 1px; }
+.coming-to { display: inline-block; font-size: 0.62em; font-weight: 600; color: #4CAF50;
+             background: rgba(76,175,80,0.12); padding: 1px 6px; border-radius: 8px; margin-top: 2px; }
+.leaving-badge { display: inline-block; font-size: 0.62em; font-weight: 600; color: #e67e22;
+                 background: rgba(230,126,34,0.12); padding: 1px 6px; border-radius: 8px; margin-top: 2px; }
+/* Library (Layer 3): 🔍 Find Similar */
+.find-title-btn { margin-top: 6px; width: 100%; padding: 5px 10px; border: 1px solid #3a3a5e;
+                  background: #2a2a3e; color: #aaa; border-radius: 8px; cursor: pointer; font-size: 0.72em; }
+.find-title-btn:hover { background: #3a3a5e; color: #ddd; }
+/* Per-item: 🔧 Wrong title? (in-development) */
+.fix-id-btn { margin-top: 6px; width: 100%; padding: 5px 10px; border: 1px dashed #8e44ad;
+              background: transparent; color: #b07cd6; border-radius: 8px; cursor: pointer; font-size: 0.72em; }
+.fix-id-btn:hover { background: rgba(142,68,173,0.15); color: #d9a6ff; }
+/* Per-item: ✕ Not in development — graduates an already-released stub onto the watchlist */
+.rm-indev-btn { margin-top: 6px; width: 100%; padding: 5px 10px; border: 1px dashed #556;
+                background: transparent; color: #8a93a6; border-radius: 8px; cursor: pointer; font-size: 0.72em; }
+.rm-indev-btn:hover { background: rgba(120,130,150,0.12); color: #b7c0d0; }
+.rm-indev-btn:disabled { opacity: 0.7; cursor: default; }
+/* YouTube TV watcher: primary "open & add" button > secondary "mark added" > tertiary "wrong match" */
+.ytv-open-btn { display: block; text-align: center; text-decoration: none; margin-top: 8px;
+                width: 100%; padding: 9px 10px; border: none; border-radius: 8px; cursor: pointer;
+                background: #cc3a3a; color: #fff; font-size: 0.82em; font-weight: 700; box-sizing: border-box; }
+.ytv-open-btn:hover { background: #e04747; }
+.ytv-mark-btn { margin-top: 6px; width: 100%; padding: 6px 10px; border: 1px solid #3a3a5e;
+                background: transparent; color: #aab; border-radius: 8px; cursor: pointer;
+                font-size: 0.72em; font-weight: 600; }
+.ytv-mark-btn:hover { background: #2a2a3e; color: #ddd; }
+.ytv-mark-btn.is-on { border-color: #2e7d46; background: rgba(46,125,70,0.18); color: #7bd39a; }
+.ytv-mark-btn.is-on:hover { background: rgba(46,125,70,0.28); color: #a6e6bd; }
+.ytv-wrong-btn { margin-top: 4px; width: 100%; padding: 4px 10px; border: 1px dashed #5a6a8e;
+                 background: transparent; color: #8b9cc0; border-radius: 8px; cursor: pointer; font-size: 0.66em; }
+.ytv-wrong-btn:hover { background: rgba(90,106,142,0.15); color: #b6c4e0; }
+.ytv-wrong-btn.is-ignored { border-style: solid; border-color: #8a6d1e; color: #d9b45a; }
+.ytv-wrong-btn.is-ignored:hover { background: rgba(138,109,30,0.15); color: #f0cf7a; }
+.next-ep { font-size: 0.68em; color: #4caf50; font-weight: 600; margin-top: 3px; }
+.next-air { color: #cfe3ff; }
+.empty { grid-column: 1/-1; text-align: center; color: #555; padding: 40px; font-size: 0.9em; }
+/* play overlay on poster */
+.play-overlay { position: absolute; inset: 0; display: flex; align-items: center;
+                justify-content: center; background: rgba(0,0,0,0.35); opacity: 0.7;
+                transition: opacity 0.2s; cursor: pointer; z-index: 5; }
+.poster:hover .play-overlay { opacity: 1; }
+.play-overlay .play-icon { width: 52px; height: 52px; background: rgba(255,255,255,0.92);
+                           border-radius: 50%; display: flex; align-items: center;
+                           justify-content: center; box-shadow: 0 2px 12px rgba(0,0,0,0.5);
+                           transition: transform 0.15s; }
+.play-overlay:hover .play-icon { transform: scale(1.1); }
+.play-icon::after { content: ''; display: block; width: 0; height: 0;
+                    border-style: solid; border-width: 10px 0 10px 18px;
+                    border-color: transparent transparent transparent #e74c3c;
+                    margin-left: 3px; }
+/* card grid responsive */
+@media (max-width: 600px) { .grid { grid-template-columns: repeat(2, 1fr); gap: 8px; padding: 8px; } }
+
+
+/* You searched for these on purpose — don't fade the ones you've watched. Keep the
+   "Already Watched" button as the only watched cue; show the card at full brightness. */
+.card.status-watched { opacity: 1; }
+.search-hero { max-width:1280px; margin:0 auto; padding:26px 20px 8px; }
+.search-hero h1 { font-size:1.5em; color:#fff; margin-bottom:4px; }
+.search-hero p { font-size:0.85em; color:#777; }
+.big-search-wrap { max-width:1280px; margin:0 auto; padding:0 20px; }
+#big-search { width:100%; background:#1a1a2e; border:1px solid #3a3a5e; color:#fff;
+  font-size:1.1em; padding:14px 18px; border-radius:14px; outline:none;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; }
+#big-search:focus { border-color:#4a90e2; }
+#big-search::placeholder { color:#666; }
+.search-meta { max-width:1280px; margin:14px auto 0; padding:0 20px; font-size:0.85em; color:#888; }
+.search-empty { max-width:1280px; margin:0 auto; padding:60px 20px; text-align:center; color:#555; font-size:1em; }
+</style>
+</head><body>
+<nav class="mh-nav"><a href="index.html" class="mh-brand">🎬 Media Hub</a><div class="mh-links"><a href="index.html" class="mh-link">Home</a><a href="trakt_discovery.html" class="mh-link">Discover</a><a href="watch_tonight.html" class="mh-link">Watch</a><a href="my_watchlist.html" class="mh-link">My Library</a></div><div class="mh-search-wrap"><input id="mh-search" class="mh-search" type="text" placeholder="Search the hub…  (Enter)" autocomplete="off" spellcheck="false"></div></nav><script>
+(function(){
+  var input = document.getElementById('mh-search');
+  if(!input) return;
+  function go(){ var q = input.value.trim(); window.location.href = 'search.html' + (q ? ('?q=' + encodeURIComponent(q)) : ''); }
+  input.addEventListener('keydown', function(e){ if(e.key==='Enter'){ e.preventDefault(); go(); } });
+})();
+</script>
+<script>
+window.hubPin = window.hubPin || function () {
+  var p = sessionStorage.getItem('hub_pin') || '';
+  if (!p) { p = prompt('Enter your PIN (remembered for this session):') || ''; if (p) sessionStorage.setItem('hub_pin', p); }
+  return p;
+};
+window.hubPinClear = window.hubPinClear || function () { sessionStorage.removeItem('hub_pin'); };
+</script>
+
+<div class="search-hero"><h1>🔎 Search</h1><p>One place to find any title across your library, discovery, and what's arriving or leaving — by title or cast.</p></div>
+<div class="big-search-wrap"><input id="big-search" type="text" placeholder="Search titles or actors…" autocomplete="off" spellcheck="false"></div>
+<div class="search-meta" id="search-meta"></div>
+<div class="grid" id="search-grid"></div>
+<script>
+let ALL_DATA = null;
+
+// Shared Media Hub card — single source of truth for a title card.
+// renderCard(item) returns the exact Discovery card HTML. Every page that shows title
+// cards uses THIS. Interactions are self-contained (PIN add / mark-watched hit the
+// worker; trailer opens YouTube; not-interested falls back to removing the card when
+// a page has no renderAll()).
+// Server-synced "Not Interested": hides persist to a Notion DB (via the worker) so a hide
+// on one device applies on every device. The UI filters on this device's pending hides ∪
+// the server's set. A page opts in to cross-device hiding by calling loadServerNotInterested()
+// on load; pages that only need local dismissal still work (renderAll()/card removal fallback).
+const NI_KEY = 'discovery_not_interested';
+const NI_API = 'https://media-hub-api.agreiter81.workers.dev/api/not-interested';
+let serverNISet = new Set();   // ids the server already has (fetched on load, if opted in)
+function getLocalNISet() {
+    try { return new Set(JSON.parse(localStorage.getItem(NI_KEY) || '[]')); }
+    catch { return new Set(); }
+}
+function saveLocalNISet(s) { localStorage.setItem(NI_KEY, JSON.stringify([...s])); }
+// What the UI filters on = this device's pending hides ∪ what the server knows.
+function getNotInterestedSet() { return new Set([...getLocalNISet(), ...serverNISet]); }
+function _hubPin() {
+    // Delegate to the ONE shared PIN helper (hub_theme PIN_JS, on every page) so the whole
+    // hub shares a single session PIN. Falls back to the stored value if it's not present.
+    if (typeof hubPin === 'function') return hubPin();
+    return sessionStorage.getItem('hub_pin') || '';
+}
+function _niRerender(card) {
+    if (card) {
+        card.style.transition = 'opacity 0.3s, transform 0.3s';
+        card.style.opacity = '0';
+        card.style.transform = 'scale(0.9)';
+        setTimeout(() => { if (typeof renderAll === 'function') renderAll(); else card.remove(); }, 350);
+    } else if (typeof renderAll === 'function') { renderAll(); }
+}
+// ✕ Not in development: the nightly build only auto-graduates on a FUTURE release date,
+// so a title that has already released stays stuck in In Development. This applies the same
+// graduation the build uses (Notion Status→"to watch", Type→movie/episode) so the title
+// becomes a normal watchlist entry, then drops it from the in-dev grid optimistically.
+const RMDEV_API = 'https://media-hub-api.agreiter81.workers.dev/api/remove-from-development';
+function removeFromDevelopment(btn) {
+    const nid = btn.dataset.nid;
+    if (!nid) return;
+    const type = btn.dataset.type === 'movie' ? 'movie' : 'tv';
+    const pin = _hubPin();
+    if (!pin) { if (typeof hubPin === 'function') hubPin(); return; }   // hubPin() prompts; user re-clicks
+    btn.disabled = true; btn.textContent = '⏳ Moving…';
+    fetch(RMDEV_API, { method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ notion_page_id: nid, type, pin }) })
+    .then(r => {
+        if (r.status === 401) { sessionStorage.removeItem('hub_pin');
+            btn.disabled = false; btn.textContent = '✕ Not in development'; return; }
+        if (!r.ok) { btn.disabled = false; btn.textContent = '⚠️ Retry'; return; }
+        // Drop this title from the grid so renderAll() won't re-add it (it's graduated now).
+        if (typeof ALL_DATA !== 'undefined') {
+            const i = ALL_DATA.findIndex(x => x.notion_id === nid);
+            if (i !== -1) ALL_DATA.splice(i, 1);
+        }
+        btn.textContent = '✓ Moved to watchlist';
+        _niRerender(btn.closest('.card'));
+    })
+    .catch(() => { btn.disabled = false; btn.textContent = '⚠️ Retry'; });
+}
+function notInterested(tmdbId, btn) {
+    const s = getLocalNISet(); s.add(tmdbId); saveLocalNISet(s);   // instant, optimistic
+    const item = (typeof ALL_DATA !== 'undefined') ? ALL_DATA.find(x => x.tmdb_id === tmdbId) : null;
+    const pin = _hubPin();
+    if (pin) {
+        fetch(NI_API, { method: 'POST', headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({ tmdb_id: tmdbId, type: (item && item.type === 'movie') ? 'movie' : 'tv',
+                                   title: (item && item.title) || '', pin }) })
+        .then(r => { if (r.status === 401) sessionStorage.removeItem('hub_pin'); else if (r.ok) serverNISet.add(tmdbId); })
+        .catch(() => {});
+    }
+    _niRerender(btn.closest('.card'));
+}
+function undoNotInterested(tmdbId) {
+    const s = getLocalNISet(); s.delete(tmdbId); saveLocalNISet(s);
+    serverNISet.delete(tmdbId);
+    const pin = _hubPin();
+    if (pin) fetch(NI_API, { method: 'DELETE', headers: {'Content-Type':'application/json'},
+                             body: JSON.stringify({ tmdb_id: tmdbId, pin }) }).catch(() => {});
+    if (typeof renderAll === 'function') renderAll();
+}
+function clearAllNotInterested() {
+    if (!confirm('Clear all ' + getNotInterestedSet().size + ' hidden titles?')) return;
+    const pin = _hubPin();
+    localStorage.removeItem(NI_KEY);
+    if (pin) fetch(NI_API, { method: 'DELETE', headers: {'Content-Type':'application/json'},
+                             body: JSON.stringify({ pin }) }).catch(() => {});
+    serverNISet = new Set();
+    if ('showHidden' in window) window.showHidden = false;
+    if (typeof renderAll === 'function') renderAll();
+}
+// Pull the server's hidden set on load so cross-device hides apply everywhere. Opt-in:
+// a page calls this once on load. (Library does NOT call it — you own those titles.)
+function loadServerNotInterested() {
+    fetch(NI_API).then(r => r.ok ? r.json() : null).then(d => {
+        if (d && Array.isArray(d.ids)) {
+            serverNISet = new Set(d.ids.map(Number));
+            if (typeof renderAll === 'function') renderAll();
+            if (typeof updateHiddenBtn === 'function') updateHiddenBtn();
+        }
+    }).catch(() => {});
+}
+// Mark / unmark a library title as added to YouTube TV — persists the Notion "On YouTube TV"
+// checkbox via the worker so the mark survives nightly rebuilds. btn.dataset.on = current state.
+// A bucket page (youtube_tv.html) may define onYtvMarkChanged(nid,on) to move the card.
+async function markOnYtv(nid, btn) {
+    const pin = _hubPin();
+    if (!pin) return;
+    const turnOn = btn.dataset.on !== '1';
+    const prev = btn.innerHTML;
+    btn.innerHTML = '…'; btn.disabled = true;
+    try {
+        const r = await fetch('https://media-hub-api.agreiter81.workers.dev/api/set-on-ytv', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ notion_page_id: nid, on: turnOn, pin })
+        });
+        if (r.status === 401) { sessionStorage.removeItem('hub_pin'); btn.innerHTML = prev; btn.disabled = false; alert('Wrong PIN — try again'); return; }
+        if (!r.ok) { btn.innerHTML = prev; btn.disabled = false; alert('Failed to update'); return; }
+        btn.dataset.on = turnOn ? '1' : '0';
+        btn.disabled = false;
+        btn.innerHTML = turnOn ? '✅ On YouTube TV' : '➕ Mark added to YouTube TV';
+        btn.classList.toggle('is-on', turnOn);
+        if (typeof onYtvMarkChanged === 'function') onYtvMarkChanged(nid, turnOn);
+    } catch (e) { btn.innerHTML = prev; btn.disabled = false; alert('Failed to update'); }
+}
+// Suppress / restore a wrong same-name airing (persists the Notion "Ignore TV Airings"
+// checkbox). A watcher page may define onIgnoreAiringChanged(nid,ignored) to re-bucket.
+async function toggleIgnoreAiring(nid, btn) {
+    const pin = _hubPin();
+    if (!pin) return;
+    const ignore = btn.dataset.ignored !== '1';   // toggle
+    const prev = btn.innerHTML;
+    btn.innerHTML = '…'; btn.disabled = true;
+    try {
+        const r = await fetch('https://media-hub-api.agreiter81.workers.dev/api/set-ignore-airings', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ notion_page_id: nid, on: ignore, pin })
+        });
+        if (r.status === 401) { sessionStorage.removeItem('hub_pin'); btn.innerHTML = prev; btn.disabled = false; alert('Wrong PIN — try again'); return; }
+        if (!r.ok) { btn.innerHTML = prev; btn.disabled = false; alert('Failed to update'); return; }
+        btn.dataset.ignored = ignore ? '1' : '0';
+        btn.disabled = false;
+        btn.innerHTML = ignore ? '↩️ Restore airing' : '🚫 Wrong airing — hide it';
+        btn.classList.toggle('is-ignored', ignore);
+        if (typeof onIgnoreAiringChanged === 'function') onIgnoreAiringChanged(nid, ignore);
+    } catch (e) { btn.innerHTML = prev; btn.disabled = false; alert('Failed to update'); }
+}
+function catLabel(c) {
+    return {trending:'🔥 Trending', anticipated:'⏳ Anticipated', popular:'⭐ Popular', watched:'👁 Most Watched', recommendations:'🎯 For You', coming_soon:'🎭 Coming Soon', in_development:'🛠 In Development', leaving:'⏳ Leaving Soon'}[c] || c;
+}
+function premShortDate(d) {
+    // "2026-08-12" -> "Aug 12" (parsed by hand so it never shifts a day across timezones).
+    try {
+        const p = String(d).split('-').map(Number);
+        return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][p[1]-1] + ' ' + p[2];
+    } catch (e) { return ''; }
+}
+async function addToWatchlist(type, traktId, tmdbId, slug, btn) {
+    const pin = hubPin();
+    if (!pin) return;
+    btn.textContent = '...';
+    btn.className = 'add-btn loading';
+    btn.disabled = true;
+
+    try {
+        const resp = await fetch('https://media-hub-api.agreiter81.workers.dev/api/add', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tmdb_id: tmdbId, type: type, pin: pin })
+        });
+
+        if (resp.status === 401) {
+            hubPinClear();
+            btn.textContent = '+ Add to Watchlist'; btn.className = 'add-btn'; btn.disabled = false;
+            alert('Wrong PIN. Try again.');
+            return;
+        }
+        const data = await resp.json();
+        if (resp.status === 409) {
+            btn.textContent = '✓ Already on Watchlist';
+            btn.className = 'add-btn added';
+        } else if (resp.ok) {
+            btn.textContent = '✓ Added to Watchlist!';
+            btn.className = 'add-btn added';
+            const item = ALL_DATA.find(d => d.trakt_id === traktId || d.tmdb_id === tmdbId);
+            if (item) { item.status = 'watchlist'; }
+            const card = btn.closest('.card');
+            if (card) {
+                card.classList.remove('status-none', 'status-watched');
+                card.classList.add('status-watchlist');
+            }
+        } else {
+            console.error('Worker error:', resp.status, data);
+            btn.textContent = '✗ Error — click to retry';
+            btn.className = 'add-btn error';
+            btn.disabled = false;
+        }
+    } catch (e) {
+        console.error(e);
+        btn.textContent = '✗ Error — click to retry';
+        btn.className = 'add-btn error';
+        btn.disabled = false;
+    }
+}
+async function markAsWatched(type, tmdbId, btn) {
+    const pin = hubPin();
+    if (!pin) return;
+    btn.textContent = '...'; btn.disabled = true;
+    try {
+        const item = ALL_DATA.find(d => d.tmdb_id === tmdbId);
+        const reqBody = { tmdb_id: tmdbId, type: type, pin: pin };
+        if (item && item.notion_id) { reqBody.notion_id = item.notion_id; }
+        const resp = await fetch('https://media-hub-api.agreiter81.workers.dev/api/mark-watched', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(reqBody)
+        });
+        if (resp.status === 401) {
+            hubPinClear();
+            btn.textContent = '👁 Mark Watched'; btn.disabled = false;
+            alert('Wrong PIN. Try again.');
+            return;
+        }
+        if (resp.ok) {
+            btn.textContent = '👁 Marked!';
+            btn.className = 'add-btn added';
+            if (item) { item.status = 'watched'; }
+            const card = btn.closest('.card');
+            if (card) {
+                card.classList.remove('status-none', 'status-watchlist');
+                card.classList.add('status-watched');
+                const wlBtn = card.querySelector('.add-btn:not(.watched-btn)');
+                if (wlBtn) { wlBtn.disabled = true; wlBtn.textContent = '👁 Already Watched'; }
+            }
+        } else {
+            btn.textContent = '✗ Error'; btn.disabled = false;
+        }
+    } catch(e) { btn.textContent = '✗ Error'; btn.disabled = false; }
+}
+function openTrailer(key, title) {
+    window.open(`https://www.youtube.com/watch?v=${key}`, '_blank');
+}
+function toggleDiscoveryActor(name) {
+  // A page may handle actor clicks itself (search.html re-runs in place); otherwise the
+  // unified behavior everywhere is to jump to the hub-wide search PAGE for that actor —
+  // no bouncing between tabs, no floating list.
+  if (typeof window.onCardActor === 'function') return window.onCardActor(name);
+  window.location.href = 'search.html?q=' + encodeURIComponent(name);
+}
+// renderCard(item, opts) — the ONE title card. opts extends the baseline per use case:
+//   opts.actions      → Add / Mark Watched / Not-Interested cluster (Discovery, Premieres,
+//                        Search, Watch Tonight). Defaults ON; Library passes actions:false.
+//   opts.library      → owned-title context: progress bar, last-watched, coming/leaving badges,
+//                        an item.age_badge, and an "Open in Notion" link.
+//   opts.findSimilar  → 🔍 Find Similar button (Library).
+// 🔧 Wrong title? is automatic when item.categories includes 'in_development' (Discovery only
+// has such items today). RT/Metacritic/Awards were removed by design.
+// Look a service's logo up the way the rest of the hub does — ignoring capitals.
+// Notion holds whatever was typed, so "Youtube TV" arrives where the map says
+// "YouTube TV", and an exact match found nothing and drew no icon. Built once.
+//
+// LIVES HERE, not in the library block, because renderCard itself uses it for the
+// "Coming to X" / "Leaving X" badges. Pages that draw cards without a logo map get
+// an empty string rather than a ReferenceError — the badge simply has no icon.
+let _PROV_LC = null;
+function _providerLogo(name) {
+    if (!name || typeof PROVIDER_LOGOS === 'undefined' || !PROVIDER_LOGOS) return '';
+    if (PROVIDER_LOGOS[name]) return PROVIDER_LOGOS[name];
+    if (!_PROV_LC) {
+        _PROV_LC = {};
+        for (const k in PROVIDER_LOGOS) _PROV_LC[k.toLowerCase()] = PROVIDER_LOGOS[k];
+    }
+    return _PROV_LC[name.toLowerCase()] || '';
+}
+
+// A service, drawn the way this hub draws services: its icon, then its name.
+// Open a card out to its full contents, or close it again. The caps that keep every
+// card the same height are all lifted together by one class on the card.
+function toggleCardOpen(el) {
+    const card = el.closest ? el.closest('.card') : null;
+    if (!card) return;
+    const open = card.classList.toggle('open');
+    const btn = card.querySelector('.card-expand');
+    if (btn) btn.textContent = open ? 'Show less' : 'Show more';
+}
+
+function _svcIcon(name) {
+    const l = _providerLogo(name);
+    return l ? `<img src="${l}" alt="" class="svc-icon">` : '';
+}
+
+function renderCard(item, opts) {
+        opts = opts || {};
+        const showActions = opts.actions !== false;   // default ON; Library sets actions:false
+        const newBadge = item.is_new ? '<span class="cat-badge new-badge">🆕 New</span>' : '';
+        // WHAT A PAGE MAY ADD TO A CARD. item.badges is [{text, tone}] — the page says
+        // what the badge MEANS, this decides what it looks like. It replaced
+        // top_badges_html, which took raw HTML and let six pages each invent their own
+        // colours for the same idea. Text is escaped: a title is not markup.
+        const TONES = {pick:1, when:1, service:1, owned:1, why:1, match:1,
+                       library:1, discover:1, arriving:1, leaving:1, premiere:1, ontv:1};
+        const ownBadges = (item.badges || []).map(b => {
+            const tone = TONES[b && b.tone] ? b.tone : 'when';
+            const text = String((b && b.text) || '')
+                .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+            return text ? `<span class="cat-badge tone-${tone}">${text}</span>` : '';
+        }).join('');
+        // 'leaving' gets a richer badge below (with days + platform), so drop it here.
+        const catBadges = newBadge + item.categories.filter(c => c !== 'leaving').map(c =>
+            `<span class="cat-badge ${c}">${catLabel(c)}</span>`
+        ).join('');
+        const typeIcon = item.type === 'movie' ? '🎬' : '📺';
+        const poster   = item.poster
+            ? `<img src="${item.poster}" alt="" loading="lazy">`
+            : `<div class="no-poster">${typeIcon}</div>`;
+        const rating   = item.rating
+            ? `★ ${item.rating}${item.votes ? ` <span class="votes">(${item.votes.toLocaleString()})</span>` : ''}`
+            : '';
+        const relDate  = item.release_date ? ` · 📅 ${item.release_date.substring(0,10)}` : '';
+        const venueLabel = item.venue === 'theater' ? '🎬 In Theaters'
+            : item.venue === 'streaming' ? '📺 Streaming'
+            : item.venue === 'tv_premiere' ? '📡 TV Premiere' : '';
+        // Name WHERE it premieres — the network / service — right on the badge, with
+        // its icon, because a service is a logo in this hub.
+        const venueWhere = (item.network && item.venue !== 'theater')
+            ? ' · ' + _svcIcon(item.network) + item.network : '';
+        // THE LAST INLINE-STYLED BADGE. It chose #e74c3c / #27ae60 / #2196F3 in the
+        // template; the three meanings are now tone classes like every other badge.
+        const venueBadge = venueLabel && item.categories && item.categories.includes('coming_soon')
+            ? `<span class="venue-badge ${item.venue}">${venueLabel}${venueWhere}</span>`
+            : '';
+        // Leaving Soon badge: how soon + which service it's leaving.
+        // THE LAST HAND-STYLED BADGE IN THE CARD. It picked #e74c3c or #e67e22 inline,
+        // which is what every page used to do before badges became declared — this one
+        // survived the cleanup by living in the card rather than in a page. Same two
+        // meanings, now as tone classes styled with all the others.
+        const lv = item.leaving;
+        const leavingWhen = lv ? (lv.days <= 0 ? 'Leaves today' : lv.days === 1 ? 'Leaves tomorrow' : `Leaves in ${lv.days} days`) : '';
+        const leavingBadge = lv
+            ? `<span class="leave-badge ${lv.days <= 3 ? 'urgent' : ''}">⏳ ${leavingWhen}${lv.platform ? ' · ' + _svcIcon(lv.platform) + lv.platform : ''}</span>`
+            : '';
+        const genres   = (item.genres||[]).map(g => `<span class="genre">${g}</span>`).join('');
+        const actorChips = (item.actor_details||[]).slice(0,4).map(a => {
+            const photo = a.photo ? `<img src="${a.photo}" style="width:20px;height:20px;border-radius:50%;vertical-align:middle;margin-right:3px">` : '';
+            return `<span class="actor-chip" onclick="event.stopPropagation();toggleDiscoveryActor('${(a.name||'').replace(/'/g,"\\'")}')" style="cursor:pointer;display:inline-flex;align-items:center;padding:2px 6px;background:#1a1a2e;border-radius:12px;font-size:0.72em;color:#bbb;margin:1px">${photo}${a.name}</span>`;
+        }).join('');
+        const providers = (item.providers||[]).filter(p => p.logo).map(p =>
+            `<img src="${p.logo}" title="${p.name}" alt="${p.name}">`
+        ).join('');
+        const overview  = item.overview || '';
+        const btnClass  = item.status;
+        const btnText   = item.status === 'watchlist' ? '✓ On Watchlist'
+                        : item.status === 'watched'   ? '👁 Already Watched'
+                        : '+ Add to Watchlist';
+        const traktUrl    = `https://trakt.tv/${item.type === 'movie' ? 'movies' : 'shows'}/${item.slug}`;
+        const traktSearch = `https://trakt.tv/search?query=${encodeURIComponent(item.title)}&type=${item.type === 'movie' ? 'movie' : 'show'}`;
+        const extLink     = item.slug
+            ? `<a class="trakt-link" href="${traktUrl}" target="_blank">View on Trakt ↗</a>`
+            : `<a class="trakt-link" href="${traktSearch}" target="_blank">View on Trakt ↗</a>`;
+        const ytvSearchUrl = `https://tv.youtube.com/search/${encodeURIComponent(item.title)}`;
+        // The YouTube TV watcher page defines onYtvMarkChanged; only there do the owned-title
+        // YouTube TV controls (open / mark / wrong-match) appear — never on the main library.
+        const onYtvPage = (typeof onYtvMarkChanged === 'function');
+        // Every card gets a small "open YouTube TV" link EXCEPT the watcher page, where it's
+        // promoted to the PRIMARY action button (the actual "go add it" step).
+        const ytvLink = onYtvPage ? '' : `<a class="trakt-link" href="${ytvSearchUrl}" target="_blank">📺 Add to YouTube TV ↗</a>`;
+        // Watcher page — the actual add action (opens YouTube TV) is the biggest, primary button;
+        // "Mark added" (persists the Notion checkbox) is the secondary confirm; "Wrong match?"
+        // (reuses the shared TMDB picker) is smallest. See one-universal-card memory.
+        const ytvOpenBtn = (opts.library && item.notion_id && onYtvPage)
+            ? `<a class="ytv-open-btn" href="${ytvSearchUrl}" target="_blank">📺 Add on YouTube TV ↗</a>`
+            : '';
+        const ytvMarkBtn = (opts.library && item.notion_id && onYtvPage)
+            ? `<button class="ytv-mark-btn${item.on_ytv ? ' is-on' : ''}" data-on="${item.on_ytv ? '1' : '0'}" onclick="event.preventDefault();markOnYtv('${item.notion_id}', this)">${item.on_ytv ? '✅ Added — on YouTube TV' : '✓ Mark as added'}</button>`
+            : '';
+        // Wrong same-name airing? Toggle suppression (persists to Notion, applies hub-wide on
+        // rebuild + live here). Shown on cards that have an airing OR are already suppressed
+        // (so you can restore). Reversible — "add it back for matching" per your ask.
+        const ytvWrongBtn = (opts.library && item.notion_id && onYtvPage && (item.next_air || item.ignore_airings))
+            ? `<button class="ytv-wrong-btn${item.ignore_airings ? ' is-ignored' : ''}" data-ignored="${item.ignore_airings ? '1' : '0'}" onclick="event.preventDefault();toggleIgnoreAiring('${item.notion_id}', this)">${item.ignore_airings ? '↩️ Restore airing' : '🚫 Wrong airing — hide it'}</button>`
+            : '';
+        const yearHtml   = item.year ? `<span class="year">${item.year}</span>` : '';
+        const certHtml   = item.cert ? ` · ${item.cert}` : '';
+        const rtHtml     = item.runtime ? ` · ${item.runtime}m` : '';
+        // Library links straight to the Notion page; every other surface links into My Library.
+        const notionLink = !item.notion_id ? ''
+            : opts.library
+                ? `<a class="trakt-link" href="https://www.notion.so/${item.notion_id}" target="_blank">📓 Open in Notion ↗</a>`
+                : `<a class="trakt-link" href="my_watchlist.html?q=${encodeURIComponent(item.title)}">📚 Open in My Library ↗</a>`;
+        const trailerUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(item.title + (item.year ? ' ' + item.year : '') + ' official trailer')}`;
+        const safeTitle  = (item.title || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        const playOverlay = item.trailer_key
+            ? `<div class="play-overlay" onclick="event.stopPropagation(); openTrailer('${item.trailer_key}', '${safeTitle}')"><div class="play-icon"></div></div>`
+            : '';
+        const trailerLink = item.trailer_key
+            ? `<a class="trakt-link" href="#" onclick="event.preventDefault(); openTrailer('${item.trailer_key}', '${safeTitle}')">🎬 Watch Trailer</a>`
+            : `<a class="trakt-link" href="${trailerUrl}" target="_blank">🎬 Watch Trailer ↗</a>`;
+        const nextEpHtml = item.next_episode && item.next_episode.date && !item.release_date
+            ? `<div class="next-ep">📺 Season ${item.next_episode.season} — ${item.next_episode.date}</div>`
+            : '';
+        // Soonest upcoming airing on my YouTube TV channels (from the guide) — e.g.
+        // "📺 Starz Encore · Fri 8:00 PM". Tells you when a title is next on TV.
+        const na = item.next_air;
+        const naMore = (na && na.more) ? ` (+${na.more} more)` : '';
+        // Suppressed (wrong same-name airing) → no airing line anywhere.
+        const nextAirHtml = (na && na.channel && !item.ignore_airings)
+            ? `<div class="next-ep next-air">📺 ${na.channel} · ${na.label} ${na.time}${naMore}</div>`
+            : '';
+        // Upcoming premiere / finale tag (from The Futon Critic) — rides EVERY card hub-wide
+        // via item.premiere_tag (premiere_tags.attach_premiere_tags), not just the Premieres
+        // calendar. Colored corner badge with the label AND the date, e.g.
+        // "🆕 Season 4 Premiere · Aug 12".
+        const pt = item.premiere_tag;
+        const ptBadge = (pt && pt.label)
+            ? `<span class="cat-badge premiere-tag ${pt.kind === 'finale' ? 'is-finale' : 'is-premiere'}">${pt.label}${pt.date ? ' · ' + premShortDate(pt.date) : ''}</span>`
+            : '';
+
+        // ── Layer 1: action cluster (Add / Mark Watched / Not Interested) ──
+        const actionBtns = showActions ? `
+    <button class="add-btn ${btnClass}" onclick="addToWatchlist('${item.type}', ${item.trakt_id}, ${item.tmdb_id}, '${item.slug}', this)"
+            ${item.status !== 'none' ? 'disabled' : ''}>${btnText}</button>
+    <button class="add-btn watched-btn" onclick="markAsWatched('${item.type}', ${item.tmdb_id}, this)"
+            ${item.status === 'watched' ? 'disabled' : ''}>${item.status === 'watched' ? '👁 Already Watched' : '👁 Mark Watched'}</button>
+    <button class="add-btn not-interested-btn" onclick="notInterested(${item.tmdb_id}, this)">🚫 Not Interested</button>` : '';
+
+        // ── Per-item: 🔧 Wrong title? (in-development titles only) ──
+        const isIndev = (item.categories || []).indexOf('in_development') !== -1;
+        const fixIdBtn = (isIndev && item.notion_id)
+            ? `<button class="fix-id-btn" data-nid="${item.notion_id}" data-title="${(item.title||'').replace(/"/g,'&quot;')}" data-type="${item.type}" onclick="openIdPicker(this)">🔧 Wrong title?</button>`
+            : '';
+        // ── Per-item: ✕ Not in development (in-development titles only) — graduate to watchlist ──
+        const removeIndevBtn = (isIndev && item.notion_id)
+            ? `<button class="rm-indev-btn" data-nid="${item.notion_id}" data-type="${item.type}" onclick="removeFromDevelopment(this)">✕ Not in development</button>`
+            : '';
+
+        // ── Layer 3: 🔍 Find Similar (Library) ──
+        const findSimilarBtn = opts.findSimilar
+            ? `<button class="find-title-btn" onclick="event.preventDefault();findMoreLikeTitle('${item.type}',${item.tmdb_id||0},'${safeTitle}')">🔍 Find Similar</button>`
+            : '';
+
+        // ── Layer 2: library context (progress, last-watched, coming/leaving, escape hatch) ──
+        let progressHtml = '', lastWatchedHtml = '', ctxBadges = '';
+        if (opts.library) {
+            const p = item.progress;
+            if (p && p.total) {
+                const pct = Math.min(100, Math.round((p.watched || 0) / p.total * 100));
+                progressHtml = `<div class="prog-wrap"><div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div><div class="prog-label">${p.watched || 0} / ${p.total} eps watched</div></div>`;
+            } else if (p && p.watched) {
+                progressHtml = `<div class="ep-info">${p.watched} episodes watched</div>`;
+            }
+            // A SERVICE IS A LOGO IN THIS HUB — including in these two badges. They
+            // named the service in WORDS while every other mention of a service on the
+            // card is an icon, so "Coming to Paramount+ today" sat above an empty logo
+            // strip and read as a missing logo. It is not: the strip lists where a
+            // title streams TODAY, and this one arrives today — a different fact. Draw
+            // the icon beside the words and the two stop looking like a contradiction.
+            // "Leaving X" used to be drawn HERE TOO, from a second field called
+            // leaving_soon whose contents were byte-identical to item.leaving — the
+            // Library wrote one name, Streaming wrote the other, and the card drew each
+            // in its own place in its own style. One field, one badge, drawn above with
+            // every other page's.
+            const ct = item.coming_to;
+            if (ct) ctxBadges += `<span class="coming-to">🟢 Coming to ${_svcIcon(ct.platform)}${ct.platform} ${ct.days === 0 ? 'today' : 'in ' + ct.days + ' day' + (ct.days===1?'':'s')}</span>`;
+            // DECLARED, NOT DRAWN — the same rule as the corner badges. item.extra_html
+            // took raw HTML from the page and was the last hole of its kind left after
+            // top_badges_html was removed. A page now says what the badge MEANS and the
+            // card owns how it looks.
+            const ag = item.age_badge;
+            if (ag && ag.text) {
+                const tone = ['fresh','months','years','stale'].includes(ag.tone) ? ag.tone : 'fresh';
+                ctxBadges += `<span class="age-badge ${tone}">${String(ag.text)
+                    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</span>`;
+            }
+            if (item.last_watched) lastWatchedHtml = `<div class="last-seen">Last watched: ${item.last_watched}</div>`;
+        }
+
+        return `<div class="card status-${item.status}" data-id="${item.trakt_id}" data-type="${item.type}">
+  <div class="poster">
+    ${poster}
+    ${playOverlay}
+    <div class="cat-badges">${ptBadge}${ownBadges}${catBadges}</div>
+    <div class="type-badge">${typeIcon}</div>
+  </div>
+  <div class="info">
+    <div class="title">${item.title}${yearHtml}</div>
+    <div class="rating">${rating}${certHtml}${rtHtml}${relDate}${venueBadge}${leavingBadge}</div>
+    <div class="genres">${genres}</div>
+    ${nextEpHtml}
+    ${nextAirHtml}
+    ${progressHtml}
+    <div class="actors">${actorChips}</div>
+    <div class="providers">${providers}</div>
+    ${ctxBadges}
+    ${lastWatchedHtml}
+    <div class="overview" onclick="event.stopPropagation(); toggleCardOpen(this)" title="Tap to open the whole card">${overview}</div>
+    <button class="card-expand" onclick="event.stopPropagation(); toggleCardOpen(this)">Show more</button>
+    ${actionBtns}
+    ${trailerLink}
+    ${ytvLink}
+    ${ytvOpenBtn}
+    ${ytvMarkBtn}
+    ${ytvWrongBtn}
+    ${extLink}
+    ${notionLink}
+    ${fixIdBtn}
+    ${removeIndevBtn}
+    ${findSimilarBtn}
+  </div>
+</div>`;
+}
+
+
+const box = document.getElementById('big-search');
+const grid = document.getElementById('search-grid');
+const meta = document.getElementById('search-meta');
+let PENDING = null;
+function scoreMatch(it, ql){
+  const t = (it.title||'').toLowerCase();
+  if (t === ql) return 0;
+  if (t.startsWith(ql)) return 1;
+  if (t.indexOf(ql) >= 0) return 2;
+  if ((it._cast||'').indexOf(ql) >= 0) return 3;   // cast match
+  return 99;
+}
+function runSearch(q){
+  const ql = (q||'').trim().toLowerCase();
+  if (ql.length < 2){
+    grid.innerHTML = '';
+    meta.textContent = 'Type at least 2 characters — searches titles and cast across your whole hub.';
+    return;
+  }
+  if (!ALL_DATA){ PENDING = q; meta.textContent = 'Loading…'; return; }
+  const hits = ALL_DATA.map(it => [scoreMatch(it, ql), it]).filter(x => x[0] < 99);
+  hits.sort((a,b) => a[0]-b[0] || (a[1].title||'').toLowerCase().localeCompare((b[1].title||'').toLowerCase()));
+  const items = hits.map(x => x[1]);
+  if (!items.length){
+    grid.innerHTML = '';
+    meta.innerHTML = 'No matches for \u201C' + q.replace(/</g,'&lt;') + '\u201D';
+    return;
+  }
+  meta.innerHTML = items.length + ' result' + (items.length===1?'':'s') + ' for \u201C' + q.replace(/</g,'&lt;') + '\u201D';
+  grid.innerHTML = items.map(renderCard).join('');
+}
+// Clicking an actor chip on any card re-runs the search here (stays on the page).
+window.onCardActor = function(name){ box.value = name; runSearch(name); box.focus(); window.scrollTo({top:0,behavior:'smooth'}); };
+box.addEventListener('input', () => {
+  runSearch(box.value);
+  const u = new URL(window.location); if (box.value.trim()) u.searchParams.set('q', box.value.trim()); else u.searchParams.delete('q');
+  history.replaceState(null, '', u);
+});
+(function(){
+  const q = new URLSearchParams(window.location.search).get('q');
+  if (q) { box.value = q; } else { box.focus(); }
+  runSearch(box.value);   // shows 'Loading…' (or the 2-char hint) until data arrives
+  // 1) Light index first — small, so search becomes usable almost immediately. Matches
+  //    render as light placeholder cards (poster/title/year).
+  fetch('search_lite.json').then(r => r.json()).then(d => {
+    if (!ALL_DATA) {                       // don't downgrade if full already beat us here
+      ALL_DATA = d;
+      const now = (PENDING !== null) ? PENDING : box.value;
+      PENDING = null;
+      runSearch(now);
+    }
+  }).catch(() => {});
+  // 2) Full data in the background — when it lands, swap it in and re-render the current
+  //    results so the light cards fill in with plot, cast photos, logos and badges.
+  fetch('search_data.json').then(r => r.json()).then(d => {
+    ALL_DATA = d;
+    runSearch(box.value);
+  }).catch(() => { if (!ALL_DATA) meta.textContent = 'Search data not available yet.'; });
+})();
+</script>
+</body></html>
