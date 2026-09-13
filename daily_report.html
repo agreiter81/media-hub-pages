@@ -163,10 +163,14 @@ ul.issues li span { color: #b9a; }
 .note { color: #666; font-size: 0.8em; margin-top: 30px; line-height: 1.6; }
 
 
-/* grid-auto-rows: 1fr — every ROW the same height, so a card is the same size
-   wherever it appears. On its own this would stretch every card to match the single
-   tallest one; it is safe because the caps above bound how tall that can be. */
-.grid { display: grid; grid-auto-rows: 1fr;
+/* A card is exactly as tall as what it holds — like the description, which expands
+   and contracts. This grid used to force every row to the height of the single
+   tallest card, and the card reserved an invisible slot for every row it MIGHT have
+   (on TV, next episode, progress, last watched, a coming-to badge), so most cards
+   carried 60-120px of blank. "The same card everywhere" means the same card, not
+   the same number of pixels: a card with more on it may be taller. Decided from a
+   side-by-side mockup, 2026-09-13. */
+.grid { display: grid; align-items: start;
         grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
         gap: 14px; padding: 16px 20px; }
 /* The home page's rows: a horizontal scroller of the SAME card. The one deliberate
@@ -237,7 +241,7 @@ ul.issues li span { color: #b9a; }
    there — and on a 375px phone that put a 312px spread across 3,785 cards: 502px
    tall at the shortest, 814px at the tallest. Cards in the SAME ROW always matched
    (the grid stretches them); it was row against row that never did, which is what
-   you see scrolling. Caps first, then grid-auto-rows below equalises what's left. */
+   you see scrolling. The caps stay; the row-equalising did not (see .grid). */
 .title { font-weight: 700; font-size: 0.88em; line-height: 1.3; color: #fff;
          display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
          overflow: hidden; min-height: 2.6em; }
@@ -273,7 +277,7 @@ ul.issues li span { color: #b9a; }
 .prov-text { font-size: 0.6em; background: #2a2a3e; color: #aaa; padding: 2px 6px;
              border-radius: 4px; white-space: nowrap; }
 /* Description: clamp to 3 lines (no fiddly inner scroll), tap/click to expand to full. */
-.overview { font-size: 0.73em; color: #999; line-height: 1.4; flex: 1; cursor: pointer;
+.overview { font-size: 0.73em; color: #999; line-height: 1.4; cursor: pointer;
             display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3;
             overflow: hidden; }
 .overview.expanded { -webkit-line-clamp: unset; overflow: visible; }
@@ -285,18 +289,10 @@ ul.issues li span { color: #b9a; }
    extended to the whole card, so there is one gesture rather than two.
    `.card` sets overflow:hidden for its rounded corners, so the open state has to
    release that too or the extra content is clipped by the card itself. */
-/* An empty slot holding a row's space open. Invisible, no border, exactly the height
-   the filled version would be — so a card is the same size whether or not it has an
-   airing, a next episode, a progress bar or a last-watched date. */
-.reserved { visibility: hidden; }
-.next-ep.reserved { height: 2.7em; }
-.last-seen.reserved { min-height: 12px; }
-.prog-wrap, .prog-wrap.reserved { height: 27px; overflow: hidden; }
-.ctx-badges { height: 30px; overflow: hidden; white-space: nowrap; }   /* coming-to / age badges, or empty */
-.ytv-wrong-btn.reserved { margin-top: 4px; border-color: transparent; background: none; }
-/* Nothing is reserved once the card is open — the blank rows would be dead space
-   under content the reader deliberately asked to see. */
-.card.open .reserved { display: none; }
+/* A row that IS there keeps one fixed height, so the same row is the same size on
+   every card. A row that is not there takes no space at all. */
+.prog-wrap { height: 27px; overflow: hidden; }
+.ctx-badges { height: 30px; white-space: nowrap; overflow: hidden; }
 .card.open .next-ep { height: auto; -webkit-line-clamp: unset; }
 
 .card.open { overflow: visible; z-index: 2; }
@@ -845,9 +841,6 @@ function renderCard(item, opts) {
         // Wrong same-name airing? Toggle suppression (persists to Notion, applies hub-wide on
         // rebuild + live here). Shown on cards that have an airing OR are already suppressed
         // (so you can restore). Reversible — "add it back for matching" per your ask.
-        const ytvWrongSlot = (opts.library && item.notion_id && onYtvPage
-                              && !(item.next_air || item.ignore_airings))
-            ? '<div class="ytv-wrong-btn reserved"></div>' : '';
         const ytvWrongBtn = (opts.library && item.notion_id && onYtvPage && (item.next_air || item.ignore_airings))
             ? `<button class="ytv-wrong-btn${item.ignore_airings ? ' is-ignored' : ''}" data-ignored="${item.ignore_airings ? '1' : '0'}" onclick="event.preventDefault();toggleIgnoreAiring('${item.notion_id}', this)">${item.ignore_airings ? '↩️ Restore airing' : '🚫 Wrong airing — hide it'}</button>`
             : '';
@@ -858,7 +851,7 @@ function renderCard(item, opts) {
         // Reserved when absent, like every other optional row: a title not in the
         // library was one link shorter than one that is, which was the last thing
         // making cards in the same rail different heights (2026-09-11).
-        const notionLink = !item.notion_id ? '<span class="trakt-link reserved"></span>'
+        const notionLink = !item.notion_id ? ''
             : opts.library
                 ? `<a class="trakt-link" href="https://www.notion.so/${item.notion_id}" target="_blank">📓 Open in Notion ↗</a>`
                 : `<a class="trakt-link" href="my_watchlist.html?q=${encodeURIComponent(item.title)}">📚 Open in My Library ↗</a>`;
@@ -885,7 +878,7 @@ function renderCard(item, opts) {
         // nothing; the alternative is cards that change size as you scroll.
         const nextEpHtml = item.next_episode && item.next_episode.date && !item.release_date
             ? `<div class="next-ep">📺 Season ${item.next_episode.season} — ${item.next_episode.date}</div>`
-            : '<div class="next-ep reserved"></div>';
+            : '';
         // Soonest upcoming airing on my YouTube TV channels (from the guide) — e.g.
         // "📺 Starz Encore · Fri 8:00 PM". Tells you when a title is next on TV.
         const na = item.next_air;
@@ -893,7 +886,7 @@ function renderCard(item, opts) {
         // Suppressed (wrong same-name airing) → no airing line anywhere.
         const nextAirHtml = (na && na.channel && !item.ignore_airings)
             ? `<div class="next-ep next-air">📺 ${na.channel} · ${na.label} ${na.time}${naMore}</div>`
-            : '<div class="next-ep next-air reserved"></div>';
+            : '';
         // Upcoming premiere / finale tag (from The Futon Critic) — rides EVERY card hub-wide
         // via item.premiere_tag (premiere_tags.attach_premiere_tags), not just the Premieres
         // calendar. Colored corner badge with the label AND the date, e.g.
@@ -936,7 +929,7 @@ function renderCard(item, opts) {
             } else if (p && p.watched) {
                 progressHtml = `<div class="ep-info">${p.watched} episodes watched</div>`;
             } else {
-                progressHtml = '<div class="prog-wrap reserved"></div>';
+                progressHtml = '';
             }
             // A SERVICE IS A LOGO IN THIS HUB — including in these two badges. They
             // named the service in WORDS while every other mention of a service on the
@@ -963,7 +956,7 @@ function renderCard(item, opts) {
             }
             lastWatchedHtml = item.last_watched
                 ? `<div class="last-seen">Last watched: ${item.last_watched}</div>`
-                : '<div class="last-seen reserved"></div>';
+                : '';
         }
 
         return `<div class="card status-${item.status}" data-id="${item.trakt_id}" data-type="${item.type}">
@@ -982,7 +975,7 @@ function renderCard(item, opts) {
     ${progressHtml}
     <div class="actors">${actorChips}</div>
     <div class="providers">${providers}</div>
-    ${opts.library ? `<div class="ctx-badges${ctxBadges ? '' : ' reserved'}">${ctxBadges}</div>` : ''}
+    ${ctxBadges ? `<div class="ctx-badges">${ctxBadges}</div>` : ''}
     ${lastWatchedHtml}
     <div class="overview" onclick="event.stopPropagation(); toggleCardOpen(this)" title="Tap to open the whole card">${overview}</div>
     <button class="card-expand" onclick="event.stopPropagation(); toggleCardOpen(this)">Show more</button>
@@ -991,7 +984,7 @@ function renderCard(item, opts) {
     ${ytvLink}
     ${ytvOpenBtn}
     ${ytvMarkBtn}
-    ${ytvWrongBtn}${ytvWrongSlot}
+    ${ytvWrongBtn}
     ${extLink}
     ${notionLink}
     ${fixIdBtn}
