@@ -2,10 +2,13 @@
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Search · Media Hub</title>
+<!-- hub_shell -->
 <style>
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
        background: #0f0f1a; color: #e0e0e0; min-height: 100vh; }
+
 
 /* ── Shared Media Hub nav (hub_theme.py) ─────────────────────────────────── */
 .mh-nav { position: sticky; top: 0; z-index: 1000; width: 100%; box-sizing: border-box;
@@ -55,12 +58,124 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 .mh-subnav a:hover { color: #fff; border-color: #4a90e2; }
 .mh-subnav a.active { color: #fff; background: #4a90e2; border-color: #4a90e2; }
 
+
+.hub-page { max-width: 1280px; margin: 0 auto; padding: 0 0 60px; }
+.hub-head { padding: 22px 20px 6px; }
+.hub-head .eyebrow { color: #666; font-size: .8em; }
+.hub-head h1 { font-size: 1.5em; font-weight: 800; margin-top: 2px; color: #fff; }
+.hub-head .sub { color: #888; font-size: .85em; margin-top: 4px; max-width: 760px; }
+.hub-foot { text-align: center; color: #444; font-size: .75em; padding: 30px 20px 10px; }
+/* A titled section containing a grid — the home page and Watch Tonight each had
+   their own `.section`, with different padding. Heading and blurb carry the side
+   inset; the section box carries none, so the grid inside is full width. */
+.hub-section { padding: 22px 0 0; }
+.hub-section h2 { font-size: 1.05em; color: #fff; margin-bottom: 4px; padding: 0 20px; }
+.hub-section .desc { font-size: .78em; color: #666; margin-bottom: 14px; padding: 0 20px; }
+.hub-divider { border: none; border-top: 1px solid #1e1e30; margin: 26px 0; }
+/* A dated group heading above a grid. Was written in three files; the copy that
+   had lost its side inset is why "Tuesday, September 1" sat against the edge. */
+.date-h { font-size: 1.02em; font-weight: 700; color: #4a90e2; border-bottom: 1px solid #22223a;
+          padding: 14px 20px 7px; margin: 22px 0 4px; }
+
+
+.controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 10px 20px 0; }
+.tab-group { display: flex; gap: 4px; }
+.tab { background: #2a2a3e; border: none; color: #aaa; padding: 5px 12px;
+       border-radius: 20px; cursor: pointer; font-size: 0.82em; transition: all 0.15s; }
+.tab.active { background: #4a90e2; color: white; }
+.tab:hover:not(.active) { background: #3a3a5e; color: #ddd; }
+.search { background: #2a2a3e; border: 1px solid #3a3a5e; color: #e0e0e0;
+          padding: 5px 12px; border-radius: 20px; font-size: 0.82em; width: 180px; }
+.search:focus { outline: none; border-color: #4a90e2; }
+.hide-opts { display: flex; gap: 10px; }
+.hide-opts label { font-size: 0.78em; color: #888; cursor: pointer; display: flex; gap: 4px; align-items: center; }
+.hide-opts input { cursor: pointer; }
+.stats { font-size: 0.75em; color: #666; margin-left: auto; }
+.cat-toggle { display: none; }
+/* streaming filter bar */
+.provider-bar { display: flex; flex-wrap: wrap; gap: 6px; padding: 7px 20px 8px;
+                border-top: 1px solid #1e1e30; align-items: center; }
+.provider-bar-label { font-size: 0.72em; color: #555; margin-right: 2px; }
+.provider-btn { background: #2a2a3e; border: 2px solid transparent; border-radius: 8px;
+                cursor: pointer; padding: 3px; transition: all 0.15s; }
+.provider-btn img { width: 28px; height: 28px; border-radius: 5px; display: block; }
+.provider-btn.active { border-color: #4a90e2; box-shadow: 0 0 6px rgba(74,144,226,0.5); }
+.provider-btn:hover:not(.active) { border-color: #3a3a5e; }
+/* genre filter bar */
+.genre-bar { border-top: 1px solid #1e1e30; padding: 7px 20px 8px; }
+.genre-bar-label { font-size: 0.72em; color: #555; cursor: pointer; user-select: none; display: inline-block; margin-bottom: 4px; }
+.genre-bar-label:hover { color: #888; }
+.genre-chips { display: flex; flex-wrap: wrap; gap: 5px; max-height: 62px; overflow: hidden;
+               transition: max-height 0.3s ease; }
+.genre-chips.expanded { max-height: 300px; }
+.genre-chips.collapsed { max-height: 0; overflow: hidden; }
+.genre-chip { background: #2a2a3e; color: #888; padding: 3px 10px;
+              border-radius: 12px; font-size: 0.72em; cursor: pointer;
+              border: 1px solid transparent; user-select: none; white-space: nowrap; }
+.genre-chip.active { background: #4a90e2; color: #fff; border-color: #4a90e2; }
+.genre-chip:hover:not(.active) { background: #3a3a5e; color: #ccc; }
+.genre-chip.show-more { color: #4a90e2; background: transparent; border-color: #3a3a5e; }
+.sort-group { display: flex; gap: 4px; align-items: center; }
+.sort-lbl { font-size: 0.72em; color: #888; }
+#sort-sel { background: #2a2a3e; border: 1px solid #3a3a5e; color: #ddd;
+            padding: 3px 6px; border-radius: 8px; cursor: pointer; font-size: 0.72em; }
+
+
+.idpick-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 3000;
+                  align-items: flex-start; justify-content: center; padding: 40px 16px; }
+.idpick-modal { background: #14141f; border: 1px solid #2a2a3e; border-radius: 14px; width: 460px;
+                max-width: 94vw; max-height: 82vh; overflow-y: auto; padding: 18px 18px 22px; position: relative; }
+.idpick-modal h3 { color: #fff; font-size: 1em; margin-bottom: 12px; padding-right: 24px; }
+.idpick-close { position: absolute; top: 10px; right: 12px; background: none; border: none; color: #888;
+                font-size: 1.5em; cursor: pointer; line-height: 1; }
+.idpick-close:hover { color: #fff; }
+.idpick-results { display: flex; flex-direction: column; gap: 6px; }
+.idpick-loading { color: #888; font-size: 0.85em; padding: 20px; text-align: center; }
+.idpick-item { display: flex; gap: 10px; align-items: center; text-align: left; width: 100%; background: #1c1c2b;
+               border: 1px solid transparent; border-radius: 10px; padding: 7px 9px; cursor: pointer; }
+.idpick-item:hover { border-color: #8e44ad; background: #20202f; }
+.idpick-item.picked { border-color: #4CAF50; }
+.idpick-item.idpick-none { border: 1px dashed #4a4a5e; }
+.idpick-item img { width: 40px; height: 60px; object-fit: cover; border-radius: 5px; flex-shrink: 0; }
+.idpick-noimg { width: 40px; height: 60px; border-radius: 5px; background: #2a2a3e; display: flex;
+                align-items: center; justify-content: center; font-size: 1.2em; flex-shrink: 0; }
+.idpick-meta { min-width: 0; }
+.idpick-title { color: #fff; font-size: 0.86em; font-weight: 600; }
+.idpick-title span { color: #888; font-weight: 400; }
+.idpick-sub { color: #9a9ab0; font-size: 0.74em; margin-top: 2px; }
+
+
+/* You searched for these on purpose — don't fade the ones you've watched. Keep the
+   "Already Watched" button as the only watched cue; show the card at full brightness. */
+.card.status-watched { opacity: 1; }
+.big-search-wrap { padding:0 20px; }
+#big-search { width:100%; background:#1a1a2e; border:1px solid #3a3a5e; color:#fff;
+  font-size:1.1em; padding:14px 18px; border-radius:14px; outline:none;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; }
+#big-search:focus { border-color:#4a90e2; }
+#big-search::placeholder { color:#666; }
+.search-meta { margin:14px 0 0; padding:0 20px; font-size:0.85em; color:#888; }
+.search-empty { padding:60px 20px; text-align:center; color:#555; font-size:1em; }
+
+
 /* grid-auto-rows: 1fr — every ROW the same height, so a card is the same size
    wherever it appears. On its own this would stretch every card to match the single
    tallest one; it is safe because the caps above bound how tall that can be. */
 .grid { display: grid; grid-auto-rows: 1fr;
         grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
         gap: 14px; padding: 16px 20px; }
+/* The home page's rows: a horizontal scroller of the SAME card. The one deliberate
+   size exception in the hub — a rail card is a fixed width, not a grid column's —
+   confirmed as intended 2026-09-06. Lived in hub_page.py until Step G; a card layout
+   belongs with the card. NOTHING here may change the card itself, only how the row
+   scrolls. */
+.card-rail { display: flex; gap: 14px; overflow-x: auto; padding: 4px 20px 14px;
+             scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch;
+             scrollbar-width: thin; scrollbar-color: #333 transparent; }
+.card-rail .card { flex: 0 0 200px; scroll-snap-align: start; }
+.card-rail::-webkit-scrollbar { height: 8px; }
+.card-rail::-webkit-scrollbar-thumb { background: #2a2a3e; border-radius: 4px; }
+@media (max-width: 600px) { .card-rail .card { flex: 0 0 150px; } }
 .card { background: #1e1e30; border-radius: 10px; overflow: hidden;
         transition: transform 0.15s, box-shadow 0.15s; display: flex; flex-direction: column; }
 .card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.4); }
@@ -124,7 +239,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 .title .year { font-weight: 400; color: #888; font-size: 0.85em; margin-left: 4px; }
 /* Stars, certificate, runtime, release date, venue and leaving badges all live on
    this one line and wrapped to three on a narrow card. */
-.rating { font-size: 0.75em; color: #f5c518; line-height: 1.5; min-height: 1.5em;
+/* Two lines reserved. Star + votes + certificate + runtime fits on one line for some
+   titles and wraps for others; that one row was the last thing making cards in
+   different grids come out different heights (18px vs 36px, measured 2026-09-11). */
+.rating { font-size: 0.75em; color: #f5c518; line-height: 1.5; min-height: 3em;
           max-height: 3em; overflow: hidden; }
 .rating .votes { color: #666; }
 .genres { display: flex; flex-wrap: wrap; gap: 3px; min-height: 20px; max-height: 20px;
@@ -166,13 +284,15 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
    the filled version would be — so a card is the same size whether or not it has an
    airing, a next episode, a progress bar or a last-watched date. */
 .reserved { visibility: hidden; }
-.next-ep.reserved { min-height: 15px; }
+.next-ep.reserved { height: 2.7em; }
 .last-seen.reserved { min-height: 12px; }
-.prog-wrap.reserved { min-height: 27px; }
-.ytv-wrong-btn.reserved { min-height: 25px; margin: 0; padding: 0; border: 0; background: none; }
+.prog-wrap, .prog-wrap.reserved { height: 27px; overflow: hidden; }
+.ctx-badges { height: 30px; overflow: hidden; white-space: nowrap; }   /* coming-to / age badges, or empty */
+.ytv-wrong-btn.reserved { margin-top: 4px; border-color: transparent; background: none; }
 /* Nothing is reserved once the card is open — the blank rows would be dead space
    under content the reader deliberately asked to see. */
 .card.open .reserved { display: none; }
+.card.open .next-ep { height: auto; -webkit-line-clamp: unset; }
 
 .card.open { overflow: visible; z-index: 2; }
 .card.open .title,
@@ -185,9 +305,13 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
                color: #4a90e2; font-size: 0.68em; font-weight: 600; padding: 2px 0 0;
                font-family: inherit; }
 .card-expand:hover { text-decoration: underline; }
-.add-btn { margin-top: 8px; padding: 6px 10px; border: none; border-radius: 8px;
+.add-btn { margin-top: 8px; padding: 0 10px; border: none; border-radius: 8px;
            cursor: pointer; font-size: 0.75em; font-weight: 600; width: 100%;
+           height: 32px; line-height: 32px; overflow: hidden; white-space: nowrap;
            transition: all 0.15s; }
+/* Fixed height: "+ Add to Watchlist" rendered 26px and "👁 Already Watched" 32px — the
+   emoji sets the line taller — so two cards with different statuses were different
+   heights, and a grid holding one of each was taller than a grid holding neither. */
 .add-btn.none      { background: #4a90e2; color: white; }
 .add-btn.none:hover { background: #357abd; }
 .add-btn.watchlist { background: #2a4a2e; color: #4CAF50; cursor: default; }
@@ -209,7 +333,9 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 .reset-btn:hover { transform: scale(1.05); background: #c0392b; }
 @keyframes reset-pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(231,76,60,0.4); } 50% { box-shadow: 0 0 8px 3px rgba(231,76,60,0.3); } }
 .trakt-link { font-size: 0.68em; color: #555; text-align: center; text-decoration: none;
-              margin-top: 3px; display: block; }
+              margin-top: 3px; display: block; height: 1.7em; line-height: 1.7em; overflow: hidden; }
+/* One fixed height per link line. A line with an emoji rendered 18px and one without
+   13px, so two cards with the same links could still differ by a few pixels. */
 .trakt-link:hover { color: #888; }
 /* Library (Layer 2): TV progress bar, last-watched, coming/leaving context badges */
 .prog-wrap { margin-top: 3px; }
@@ -260,18 +386,26 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
                 width: 100%; padding: 9px 10px; border: none; border-radius: 8px; cursor: pointer;
                 background: #cc3a3a; color: #fff; font-size: 0.82em; font-weight: 700; box-sizing: border-box; }
 .ytv-open-btn:hover { background: #e04747; }
-.ytv-mark-btn { margin-top: 6px; width: 100%; padding: 6px 10px; border: 1px solid #3a3a5e;
+.ytv-mark-btn { margin-top: 6px; width: 100%; padding: 0 10px; border: 1px solid #3a3a5e;
                 background: transparent; color: #aab; border-radius: 8px; cursor: pointer;
-                font-size: 0.72em; font-weight: 600; }
+                font-size: 0.72em; font-weight: 600; height: 27px; line-height: 25px;
+                white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ytv-mark-btn:hover { background: #2a2a3e; color: #ddd; }
 .ytv-mark-btn.is-on { border-color: #2e7d46; background: rgba(46,125,70,0.18); color: #7bd39a; }
 .ytv-mark-btn.is-on:hover { background: rgba(46,125,70,0.28); color: #a6e6bd; }
-.ytv-wrong-btn { margin-top: 4px; width: 100%; padding: 4px 10px; border: 1px dashed #5a6a8e;
-                 background: transparent; color: #8b9cc0; border-radius: 8px; cursor: pointer; font-size: 0.66em; }
+.ytv-wrong-btn { margin-top: 4px; width: 100%; padding: 0 10px; border: 1px dashed #5a6a8e;
+                 background: transparent; color: #8b9cc0; border-radius: 8px; cursor: pointer; font-size: 0.66em;
+                 height: 27px; line-height: 25px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ytv-wrong-btn:hover { background: rgba(90,106,142,0.15); color: #b6c4e0; }
 .ytv-wrong-btn.is-ignored { border-style: solid; border-color: #8a6d1e; color: #d9b45a; }
 .ytv-wrong-btn.is-ignored:hover { background: rgba(138,109,30,0.15); color: #f0cf7a; }
-.next-ep { font-size: 0.68em; color: #4caf50; font-weight: 600; margin-top: 3px; }
+.next-ep { font-size: 0.68em; color: #4caf50; font-weight: 600; margin-top: 3px;
+           line-height: 1.35; height: 2.7em; overflow: hidden;
+           display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+/* Two lines, always, filled or not. "Next: S2E4 · Sep 14" fits on one line; "📺 CBS ·
+   Tomorrow 8:00 PM (+3 more)" wraps to two. Each card carries two of these (next episode,
+   next airing), so the row was 30, 46 or 59px tall depending on the title, and that was
+   the last thing making cards in different grids different heights (2026-09-11). */
 .next-air { color: #cfe3ff; }
 .empty { grid-column: 1/-1; text-align: center; color: #555; padding: 40px; font-size: 0.9em; }
 /* play overlay on poster */
@@ -292,22 +426,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 @media (max-width: 600px) { .grid { grid-template-columns: repeat(2, 1fr); gap: 8px; padding: 8px; } }
 
 
-/* You searched for these on purpose — don't fade the ones you've watched. Keep the
-   "Already Watched" button as the only watched cue; show the card at full brightness. */
-.card.status-watched { opacity: 1; }
-.search-hero { max-width:1280px; margin:0 auto; padding:26px 20px 8px; }
-.search-hero h1 { font-size:1.5em; color:#fff; margin-bottom:4px; }
-.search-hero p { font-size:0.85em; color:#777; }
-.big-search-wrap { max-width:1280px; margin:0 auto; padding:0 20px; }
-#big-search { width:100%; background:#1a1a2e; border:1px solid #3a3a5e; color:#fff;
-  font-size:1.1em; padding:14px 18px; border-radius:14px; outline:none;
-  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; }
-#big-search:focus { border-color:#4a90e2; }
-#big-search::placeholder { color:#666; }
-.search-meta { max-width:1280px; margin:14px auto 0; padding:0 20px; font-size:0.85em; color:#888; }
-.search-empty { max-width:1280px; margin:0 auto; padding:60px 20px; text-align:center; color:#555; font-size:1em; }
-</style>
-</head><body>
+</style></head><body>
 <nav class="mh-nav"><a href="index.html" class="mh-brand">🎬 Media Hub</a><div class="mh-links"><a href="index.html" class="mh-link">Home</a><a href="trakt_discovery.html" class="mh-link">Discover</a><a href="watch_tonight.html" class="mh-link">Watch</a><a href="my_watchlist.html" class="mh-link">My Library</a></div><div class="mh-search-wrap"><input id="mh-search" class="mh-search" type="text" placeholder="Search the hub…  (Enter)" autocomplete="off" spellcheck="false"></div></nav><script>
 (function(){
   var input = document.getElementById('mh-search');
@@ -325,12 +444,13 @@ window.hubPin = window.hubPin || function () {
 window.hubPinClear = window.hubPinClear || function () { sessionStorage.removeItem('hub_pin'); };
 </script>
 
-<div class="search-hero"><h1>🔎 Search</h1><p>One place to find any title across your library, discovery, and what's arriving or leaving — by title or cast.</p></div>
+<main class="hub-page">
+<header class="hub-head"><h1>🔎 Search</h1><div class="sub">One place to find any title across your library, discovery, and what's arriving or leaving — by title or cast.</div></header>
 <div class="big-search-wrap"><input id="big-search" type="text" placeholder="Search titles or actors…" autocomplete="off" spellcheck="false"></div>
 <div class="search-meta" id="search-meta"></div>
 <div class="grid" id="search-grid"></div>
+</main>
 <script>
-let ALL_DATA = null;
 
 // Shared Media Hub card — single source of truth for a title card.
 // renderCard(item) returns the exact Discovery card HTML. Every page that shows title
@@ -721,7 +841,10 @@ function renderCard(item, opts) {
         const certHtml   = item.cert ? ` · ${item.cert}` : '';
         const rtHtml     = item.runtime ? ` · ${item.runtime}m` : '';
         // Library links straight to the Notion page; every other surface links into My Library.
-        const notionLink = !item.notion_id ? ''
+        // Reserved when absent, like every other optional row: a title not in the
+        // library was one link shorter than one that is, which was the last thing
+        // making cards in the same rail different heights (2026-09-11).
+        const notionLink = !item.notion_id ? '<span class="trakt-link reserved"></span>'
             : opts.library
                 ? `<a class="trakt-link" href="https://www.notion.so/${item.notion_id}" target="_blank">📓 Open in Notion ↗</a>`
                 : `<a class="trakt-link" href="my_watchlist.html?q=${encodeURIComponent(item.title)}">📚 Open in My Library ↗</a>`;
@@ -845,7 +968,7 @@ function renderCard(item, opts) {
     ${progressHtml}
     <div class="actors">${actorChips}</div>
     <div class="providers">${providers}</div>
-    ${ctxBadges}
+    ${opts.library ? `<div class="ctx-badges${ctxBadges ? '' : ' reserved'}">${ctxBadges}</div>` : ''}
     ${lastWatchedHtml}
     <div class="overview" onclick="event.stopPropagation(); toggleCardOpen(this)" title="Tap to open the whole card">${overview}</div>
     <button class="card-expand" onclick="event.stopPropagation(); toggleCardOpen(this)">Show more</button>
@@ -865,6 +988,188 @@ function renderCard(item, opts) {
 }
 
 
+
+// ── Map a library movie/show object → the shared renderCard item shape ────────
+// PASS-THROUGH BY DEFAULT. This used to be a hand-written allow-list that named
+// every field one by one, so any NEW card field that nobody remembered to add
+// here silently vanished from Library cards only — it cost us next_air and
+// premiere_tag (2026-08-10) and cert (2026-08-28). Now we spread the library
+// item first and only override what genuinely needs reshaping, so a new field
+// reaches the Library card the moment the data populates it. Do NOT convert
+// this back into an explicit field list.
+//
+// The legacy-name reads below (it.rating || it.vote_average) accept EITHER
+// spelling, so the Library's raw-TMDB names can be renamed to the card's names
+// incrementally without a flag day — both work during the transition.
+// THE TRANSLATOR IS GONE. This used to rename eight fields (vote_average→rating,
+// platforms→providers, show_id→tmdb_id, trakt_slug→slug, …) because the Library
+// stored its items under the raw Notion/TMDB spellings. It now stores them under
+// the canonical names (title_shape), so there is nothing left to translate — and
+// nothing left to forget, which is what silently dropped next_air, premiere_tag
+// and cert from Library cards on three separate occasions.
+//
+// What remains is NOT translation. It is the handful of things that are genuinely
+// specific to the Library page's cards. Do NOT let field renaming creep back in
+// here: if a name needs converting, convert it at the source instead.
+function libToCardItem(it, type) {
+    // The status arrives in the card's own vocabulary now. The Library used to write
+    // 'to_watch' where the card says 'watchlist', and this line converted it — a
+    // translation that existed only because two readers of the same Notion database
+    // had been written separately. Both now go through title_shape.from_notion_props,
+    // so there is one word for the state and nothing to convert.
+    const status = (it.status === 'watched' || it.status === 'watchlist') ? it.status : 'none';
+    // How long it has sat on the list — a Library-only fact, so the page works it out,
+    // but it says what it MEANS ({text, tone}) and card_ui decides how it looks. It used
+    // to hand over finished HTML with its own four colours.
+    const age = (typeof getAgingBadge === 'function' ? getAgingBadge(it) : null);
+    return Object.assign({}, it, {
+        type,
+        status,
+        // A provider with no logo can't be drawn; keep the shape, backfill a logo
+        // the page knows about, and drop the ones that still have none.
+        providers: (it.providers || [])
+            .map(p => (p.logo ? p : { name: p.name, logo: _providerLogo(p.name) }))
+            .filter(p => p.name && p.logo),
+        // A release date on a title you already own is noise — you know when
+        // Jaws came out. A date still to COME is the useful half: it says the
+        // thing you are waiting for has a date now. So keep future dates, drop
+        // past ones, rather than blanking the field for everything.
+        release_date: (it.release_date && it.release_date.slice(0, 10) > new Date().toISOString().slice(0, 10))
+                      ? it.release_date : '',
+        categories: [],
+        age_badge: age
+    });
+}
+// Library cards = shared baseline + library context + Find Similar; NO acquisition buttons.
+function renderMovieCard(m) {
+    return renderCard(libToCardItem(m, 'movie'), { actions: false, library: true, findSimilar: true });
+}
+function renderTVCard(s) {
+    return renderCard(libToCardItem(s, 'tv'), { actions: false, library: true, findSimilar: true });
+}
+
+
+const PROVIDER_NORMALIZE = {
+    'Netflix': 'Netflix',
+    'Netflix Standard with Ads': 'Netflix',
+    'Netflix basic with Ads': 'Netflix',
+    'Netflix Kids': 'Netflix',
+    'Hulu': 'Hulu',
+    'Amazon Prime Video': 'Amazon Prime Video',
+    'Amazon Prime Video with Ads': 'Amazon Prime Video',
+    'Prime Video': 'Amazon Prime Video',
+    'Disney+': 'Disney+',
+    'Disney Plus': 'Disney+',
+    'Max': 'Max',
+    'HBO Max': 'Max',
+    'Paramount+': 'Paramount+',
+    'Paramount+ Amazon Channel': 'Paramount+',
+    'Paramount+ Apple TV Channel': 'Paramount+',
+    'Paramount Plus': 'Paramount+',
+    'Paramount Plus Apple TV Channel': 'Paramount+',
+    'Peacock': 'Peacock',
+    'Peacock Premium': 'Peacock',
+    'Peacock Premium Plus': 'Peacock',
+    'Apple TV+': 'Apple TV+',
+    'Apple TV Plus': 'Apple TV+',
+    'Apple TV': 'Apple TV+',          // TMDB uses "Apple TV" (ID 350) for the Apple TV+ service
+    'Starz': 'Starz',
+    'Starz Apple TV Channel': 'Starz',
+    'Starz Amazon Channel': 'Starz',
+    'Starz Roku Premium Channel': 'Starz',
+    'MGM+': 'MGM+',
+    'MGM+ Amazon Channel': 'MGM+',
+    'AMC+': 'AMC+',
+    'AMC+ Amazon Channel': 'AMC+',
+    'AMC Plus': 'AMC+',
+    'Tubi TV': 'Tubi',
+    'Tubi': 'Tubi',
+    'Pluto TV': 'Pluto TV',
+    'The Roku Channel': 'Roku',
+    'Roku Channel': 'Roku',
+};
+const PREFERRED_ORDER = [
+    'Netflix', 'Hulu', 'Amazon Prime Video', 'Disney+', 'Max',
+    'Paramount+', 'Peacock', 'Apple TV+', 'Starz', 'MGM+', 'AMC+',
+    'Tubi', 'Pluto TV', 'Roku'
+];
+function buzzOf(i){ if(i.buzz) return i.buzz; const w=i.watchers||0,v=i.votes||0,r=i.rating||0; return v>0?(Math.log10(Math.max(v,1))*15+r*3+w*0.1):w*0.5; }
+// Build Discovery's exact provider LOGO bar into barEl from data; toggling updates activeSet + calls onChange.
+function buildProviderBar(barEl, data, activeSet, onChange){
+  const canonData={};
+  data.forEach(item => { const seen=new Set(); (item.providers||[]).forEach(p => {
+    const canon=PROVIDER_NORMALIZE[p.name]; if(!canon||!p.logo||seen.has(canon)) return; seen.add(canon);
+    if(!canonData[canon]) canonData[canon]={count:0,logo:p.logo}; canonData[canon].count++;
+    const isChannel=p.name.includes('Amazon Channel')||p.name.includes('Apple TV Channel'); if(!isChannel) canonData[canon].logo=p.logo;
+  }); });
+  PREFERRED_ORDER.forEach(name => { const d=canonData[name]; if(!d) return;
+    const btn=document.createElement('button'); btn.className='provider-btn'; btn.title=name+' ('+d.count+')'; btn.dataset.provider=name;
+    btn.innerHTML='<img src="'+d.logo+'" alt="'+name+'">';
+    btn.addEventListener('click', ()=>{ if(activeSet.has(name)){activeSet.delete(name);btn.classList.remove('active');}else{activeSet.add(name);btn.classList.add('active');} onChange(); });
+    barEl.appendChild(btn);
+  });
+}
+function providerMatch(item, activeSet){ if(!activeSet.size) return true; return (item.providers||[]).some(p => activeSet.has(PROVIDER_NORMALIZE[p.name])); }
+
+
+
+// ── Shared TMDB picker: search /api/search, render results, hand the choice back ──
+const PICKER_API = 'https://media-hub-api.agreiter81.workers.dev';
+function _idpickOverlay() {
+    let ov = document.getElementById('idpick-overlay');
+    if (ov) return ov;
+    ov = document.createElement('div');
+    ov.id = 'idpick-overlay';
+    ov.className = 'idpick-overlay';
+    ov.onclick = function(e) { if (e.target === ov) ov.style.display = 'none'; };
+    ov.innerHTML = '<div class="idpick-modal">' +
+        '<button class="idpick-close" onclick="document.getElementById(\'idpick-overlay\').style.display=\'none\'">&times;</button>' +
+        '<h3 id="idpick-h">Pick the correct title</h3>' +
+        '<div id="idpick-results" class="idpick-results"></div></div>';
+    document.body.appendChild(ov);
+    return ov;
+}
+// opts: { title, type ('movie'|'tv'), heading?, allowNone? (button label),
+//         onPick(result, el), onNone?(el) }
+async function openTmdbPicker(opts) {
+    const ov = _idpickOverlay();
+    ov.querySelector('#idpick-h').textContent = opts.heading || ('Pick the correct title for "' + opts.title + '"');
+    const box = ov.querySelector('#idpick-results');
+    box.innerHTML = '<div class="idpick-loading">Searching TMDB…</div>';
+    ov.style.display = 'flex';
+    window._idpickOnPick = opts.onPick || null;
+    window._idpickOnNone = opts.onNone || null;
+    try {
+        const r = await fetch(PICKER_API + '/api/search?q=' + encodeURIComponent(opts.title) +
+            '&type=' + (opts.type === 'movie' ? 'movie' : 'tv'));
+        const data = await r.json();
+        const results = data.results || [];
+        window._idpickResults = results;
+        let html = results.map(function(x, i) {
+            const poster = x.poster ? '<img src="' + x.poster + '" alt="">' : '<div class="idpick-noimg">🎬</div>';
+            return '<button class="idpick-item" onclick="_idpickChoose(' + i + ', this)">' + poster +
+                '<div class="idpick-meta"><div class="idpick-title">' + (x.title || '') +
+                (x.year ? ' <span>(' + x.year + ')</span>' : '') + '</div>' +
+                '<div class="idpick-sub">TMDB #' + x.id + (x.rating ? ' · ★ ' + x.rating : '') + '</div></div></button>';
+        }).join('');
+        if (!results.length) html = '<div class="idpick-loading">No TMDB matches found.</div>';
+        if (opts.allowNone) html += '<button class="idpick-item idpick-none" onclick="_idpickNone(this)">' +
+            '<div class="idpick-noimg">➕</div><div class="idpick-meta"><div class="idpick-title">' + opts.allowNone +
+            '</div><div class="idpick-sub">Save with no TMDB match (for pre-TMDB titles)</div></div></button>';
+        box.innerHTML = html;
+    } catch (e) {
+        box.innerHTML = '<div class="idpick-loading">Search failed. Try again.</div>';
+    }
+}
+function _idpickChoose(i, el) {
+    const res = (window._idpickResults || [])[i];
+    if (res && window._idpickOnPick) window._idpickOnPick(res, el);
+}
+function _idpickNone(el) { if (window._idpickOnNone) window._idpickOnNone(el); }
+function _idpickClose() { const ov = document.getElementById('idpick-overlay'); if (ov) ov.style.display = 'none'; }
+
+
+let ALL_DATA = null;
 const box = document.getElementById('big-search');
 const grid = document.getElementById('search-grid');
 const meta = document.getElementById('search-meta');
@@ -924,5 +1229,6 @@ box.addEventListener('input', () => {
     runSearch(box.value);
   }).catch(() => { if (!ALL_DATA) meta.textContent = 'Search data not available yet.'; });
 })();
+
 </script>
 </body></html>
